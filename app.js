@@ -24,6 +24,7 @@ const authRoute = require('./routes/authRoute');
 const addressRoute = require('./routes/addressRoute');
 const mazadRoute = require('./routes/mazadRoute');
 const cartRoute = require('./routes/cartRoute');
+const orderRoute = require('./routes/orderRoute');
 const { webhookCheckout } = require('./services/orderService');
 
 
@@ -89,6 +90,7 @@ app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/addresses', addressRoute);
 app.use('/api/v1/mazad', mazadRoute);
 app.use('/api/v1/cart', cartRoute);
+app.use('/api/v1/orders', orderRoute);
 
 
 
