@@ -96,6 +96,7 @@ const createCardOrder = async (session) => {
     paidAt: Date.now(),
   });
 
+  const cartDelete = await Cart.findByIdAndDelete(cartId);
   
 };
 
