@@ -7,7 +7,8 @@ const ApiFeatures = require('../utils/apiFeatures');
 const StatusMode= async(Model)=>{
   const currentUTC = new Date();
   // Add 3 hours to the current UTC time
-  const utcPlus3Hours = new Date(currentUTC.getTime() + 1 * 60 * 60 * 1000).toLocaleString()
+  const utcPlus3Hours = new Date(currentUTC.getTime() + 1 * 60 * 60 * 1000)
+
 
 
   const result = await Model.updateMany(
@@ -46,6 +47,8 @@ exports.getAll = (Model,modelName,special) =>
     let filter = {};
     if (special === "special") {   
       filter = {Merchant:req.user._id}
+    }else if (req.filterObj) {
+      filter = req.filterObj;
     }
   
 
@@ -135,6 +138,13 @@ asyncHandler(async(req,res,next)=>{
 exports.updateOne=(Model,modelName) =>
 asyncHandler(async(req,res,next)=>{
     const { id } = req.params;
+    if (req.body.BiddingStartTime){
+      const BiddingEndTime=
+      new Date(new Date(req.body.BiddingStartTime).setDate(new Date(req.body.BiddingStartTime).getDate()+1)).toLocaleDateString();
+      const expired = await Model.findByIdAndUpdate(req.params.id, {BiddingEndTime:BiddingEndTime}, {
+        new: true,
+      });
+    }
     const data = await Model.findByIdAndUpdate(req.params.id, req.body, {
         new: true,
       });
