@@ -49,7 +49,7 @@ exports.signupValidator = [
     check('role').notEmpty()
     .withMessage('نوع المستخدم مطلوب')
     .custom((val) => {
-      if (val !== 'user' && val !== 'Merchant') {
+      if (val !== 'user' && val !== 'Merchant' && val !== 'admin') {
         throw new Error('اختر صلاحية مستخدمة صحيحة');
       }
       return true;
