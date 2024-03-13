@@ -1,12 +1,12 @@
-const mongoose = require('mongoose');
-const bcrypt = require('bcryptjs');
+const mongoose = require("mongoose");
+const bcrypt = require("bcryptjs");
 
 const userSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       trim: true,
-      required: [true, 'name required'],
+      required: [true, "name required"],
     },
     slug: {
       type: String,
@@ -14,20 +14,34 @@ const userSchema = new mongoose.Schema(
     },
     email: {
       type: String,
-      required: [true, 'email required'],
+      required: [true, "email required"],
       unique: true,
       lowercase: true,
     },
     phone: String,
     password: {
       type: String,
-      required: [true, 'password required'],
-      minlength: [6, 'Too short password'],
+      required: [true, "password required"],
+      minlength: [6, "Too short password"],
     },
+    passwordChangedAt: Date,
+    passwordResetCode: String,
+    passwordResetExpires: Date,
+    passwordResetVerified: Boolean,
+    active: {
+      type: Boolean,
+      default: true,
+    },
+    wishlist: [
+      {
+        type: mongoose.Schema.ObjectId,
+        ref: "Product",
+      },
+    ],
     role: {
       type: String,
-      enum: ['user','Merchant'],
-      default: 'user',
+      enum: ["user", "Merchant",'admin'],
+      default: "user",
     },
     addresses: [
       {
@@ -42,17 +56,12 @@ const userSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-
-userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) return next();
+userSchema.pre("save", async function (next) {
+  if (!this.isModified("password")) return next();
   this.password = await bcrypt.hash(this.password, 12);
   next();
 });
 
-
-
-
-
-const User = mongoose.model('User', userSchema);
+const User = mongoose.model("User", userSchema);
 
 module.exports = User;

@@ -20,6 +20,7 @@ const dbConnection = require('./config/database');
 
 // Routes
 const productRoute = require('./routes/productRoute');
+const userRoute = require('./routes/userRoute');
 const authRoute = require('./routes/authRoute');
 const addressRoute = require('./routes/addressRoute');
 const mazadRoute = require('./routes/mazadRoute');
@@ -86,6 +87,7 @@ io.on("connection", (socket) => {
 
 // Mount Routes
 app.use('/api/v1/products', productRoute);
+app.use('/api/v1/users', userRoute);
 app.use('/api/v1/auth', authRoute);
 app.use('/api/v1/addresses', addressRoute);
 app.use('/api/v1/mazad', mazadRoute);
