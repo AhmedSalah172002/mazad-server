@@ -113,7 +113,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
 
   user.passwordResetCode = hashedResetCode;
 
-  // Add expiration time for password reset code (1 min)
+  // Add expiration time for password reset code (10 mins)
   user.passwordResetExpires = Date.now() + 10 * 60 * 1000;
   user.passwordResetVerified = false;
 
@@ -124,7 +124,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   try {
     await sendEmail({
       email: user.email,
-      subject: "Your password reset code (valid for 10 mins)",
+      subject: "Your password reset code (valid for 10 minutes)",
       message,
       resetCode: resetCode,
     });
@@ -138,7 +138,7 @@ exports.forgotPassword = asyncHandler(async (req, res, next) => {
   }
 
   res
-    .status(200)
+    .status(201)
     .json({ status: "Success", message: "Reset code sent to email" });
 });
 
@@ -164,7 +164,7 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
   user.passwordResetVerified = true;
   await user.save();
 
-  res.status(200).json({
+  res.status(201).json({
     status: "Success",
   });
 });
