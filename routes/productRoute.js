@@ -10,12 +10,12 @@ const router=express.Router()
 
 router.route('/')
 .get(getProducts)
-.post(protect,allowedTo("Merchant"),uploadImage,resizeImage,createProductValidator,createProduct)
+.post(protect,allowedTo("Merchant"),uploadImage,resizeImage('products'),createProductValidator,createProduct)
 router.route('/special').get(protect,allowedTo("Merchant"),specialProducts)
 
 router.route('/:id')
 .get(getProductValidator,getProduct)
-.put(protect,allowedTo("Merchant"),uploadImage,resizeImage,updateProductValidator,updateProduct)
+.put(protect,allowedTo("Merchant"),uploadImage,resizeImage('products'),updateProductValidator,updateProduct)
 .delete(protect,allowedTo("Merchant"),deleteProductValidator,deleteProduct)
 
 module.exports = router;
