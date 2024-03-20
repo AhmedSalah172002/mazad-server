@@ -121,7 +121,7 @@ exports.allowedTo = (...roles) =>
     user.passwordResetCode = hashedResetCode;
 
     // Add expiration time for password reset code (1 min)
-    user.passwordResetExpires = Date.now() + 1 * 60 * 1000;
+    user.passwordResetExpires = Date.now() + 5 * 60 * 1000;
     user.passwordResetVerified = false;
 
     await user.save();
@@ -131,7 +131,7 @@ exports.allowedTo = (...roles) =>
     try {
       await sendEmail({
         email: user.email,
-        subject: 'Your password reset code (valid for 1 min)',
+        subject: 'Your password reset code (valid for 5 minutes)',
         message,
         resetCode:resetCode
       });
@@ -145,7 +145,7 @@ exports.allowedTo = (...roles) =>
     }
   
     res
-      .status(200)
+      .status(201)
       .json({ status: 'Success', message: 'Reset code sent to email' });
     
   })
@@ -172,7 +172,7 @@ exports.verifyPassResetCode = asyncHandler(async (req, res, next) => {
     user.passwordResetVerified = true;
     await user.save();
   
-    res.status(200).json({
+    res.status(201).json({
       status: 'Success',
     });
   });
