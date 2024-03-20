@@ -24,31 +24,31 @@ const productSchema = new mongoose.Schema(
       required: [true, "Product description is required"],
       minlength: [10, "Too short product description"],
     },
-    InitialPrice: {
+    initialPrice: {
       type: Number,
-      required: [true, "Product InitialPrice is required"],
+      required: [true, "Product initialPrice is required"],
     },
-    LowestBidValue: {
+    lowestBidValue: {
       type: Number,
-      required: [true, "Product LowestBidValue is required"],
+      required: [true, "Product lowestBidValue is required"],
     },
-    BiddingStartTime: {
+    biddingStartDate: {
       type: Date,
-      required: [true, "Product BiddingStartTime is required"],
+      required: [true, "Product biddingStartDate is required"],
     },
-    BiddingEndTime: {
+    biddingEndDate: {
       type: Date,
-      required: [true, "Product BiddingEndTime is required"],
+      required: [true, "Product biddingEndDate is required"],
     },
     status: {
       type: String,
       default: "not-started",
       enum: ["not-started", "start-now", "finished"],
     },
-    Merchant: {
+    user: {
       type: mongoose.Schema.ObjectId,
       ref: "User",
-      required: [true, "Product must belong to Merchant"],
+      required: [true, "Product must belong to user"],
     },
     mazad: [
       {
@@ -71,30 +71,38 @@ const productSchema = new mongoose.Schema(
   }
 );
 
-const setImageURL = (doc) => {
+const setImageURL = (doc, dirName) => {
   if (doc.image) {
-    const imageUrl = `${process.env.BASE_URL}/products/${doc.image}`;
+    const imageUrl = `${process.env.BASE_URL}/${dirName}/${doc.image}`;
     doc.image = imageUrl;
   }
 };
 // findOne, findAll and update
 productSchema.post("init", (doc) => {
-  setImageURL(doc);
+  setImageURL(doc, 'products');
 });
 
 // create
 productSchema.post("save", (doc) => {
-  setImageURL(doc);
+  setImageURL(doc, 'products');
 });
 
 productSchema.pre(/^find/, function (next) {
   this.populate({
-    path: "Merchant",
+    path: "user",
     select: "name email phone role addresses",
+  });
+  this.populate({
+    path: "category",
+    select: "name image",
   });
   this.populate({ path: "mazad.user" });
   next();
 });
 
+const Product = mongoose.model("Product", productSchema);
 // 2- Create model
-module.exports = mongoose.model("Product", productSchema);
+module.exports = {
+  Product,
+  setImageURL,
+};

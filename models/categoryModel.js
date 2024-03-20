@@ -1,4 +1,5 @@
 const { default: mongoose } = require("mongoose");
+const { setImageURL } = require("./productModel");
 
 const categorySchema = new mongoose.Schema({
   name: {
@@ -10,6 +11,12 @@ const categorySchema = new mongoose.Schema({
     type: String,
   },
 });
+
+// findOne, findAll and update
+categorySchema.post("init", (doc) => {
+  setImageURL(doc, 'categories');
+});
+
 
 const Category = mongoose.model("Category", categorySchema);
 

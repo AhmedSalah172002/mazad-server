@@ -1,22 +1,15 @@
-const stripe = require('stripe')(process.env.STRIPE_SECRET);
-const fs = require('fs');
-const { v4: uuidv4 } = require('uuid');
-
-const asyncHandler = require('express-async-handler');
-const factory = require('./handlersFactory');
-const ApiError = require('../utils/apiError');
-
-const User = require('../models/userModel');
-const Product = require('../models/productModel');
-const Cart = require('../models/cartModel');
-const Order = require('../models/orderModel');
-
-
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
+const asyncHandler = require("express-async-handler");
+const factory = require("./handlersFactory");
+const ApiError = require("../utils/apiError");
+const User = require("../models/userModel");
+const Cart = require("../models/cartModel");
+const Order = require("../models/orderModel");
 
 exports.filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
-  if (req.user.role === 'user') {
-    req.filterObj = { user: req.user._id }
-  };
+  if (req.user.role === "user") {
+    req.filterObj = { user: req.user._id };
+  }
   next();
 });
 
@@ -29,11 +22,6 @@ exports.findAllOrders = factory.getAll(Order);
 // @route   POST /api/v1/orders
 // @access  Protected/User-Admin
 exports.findSpecificOrder = factory.getOne(Order);
-
-
-
-
-
 
 // @desc    Get checkout session from stripe and send it as response
 // @route   GET /api/v1/orders/checkout-session/cartId
@@ -58,7 +46,7 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
     line_items: [
       {
         price_data: {
-          currency: 'egp',
+          currency: "egp",
           unit_amount: totalOrderPrice * 100,
           product_data: {
             name: req.user.name,
@@ -67,7 +55,7 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
         quantity: 1,
       },
     ],
-    mode: 'payment',
+    mode: "payment",
     success_url: `${process.env.FRONTEND_URL}/my-orders`,
     cancel_url: `${process.env.FRONTEND_URL}`,
     customer_email: req.user.email,
@@ -76,7 +64,7 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
   });
 
   // 4) send session to response
-  res.status(200).json({ status: 'success', session });
+  res.status(200).json({ status: "success", session });
 });
 
 const createCardOrder = async (session) => {
@@ -87,8 +75,7 @@ const createCardOrder = async (session) => {
   const cart = await Cart.findById(cartId);
   const user = await User.findOne({ email: session.customer_email });
 
- 
- // 3) Create order with default paymentMethodType card
+  // 3) Create order with default paymentMethodType card
   const order = await Order.create({
     user: user._id,
     product: cart.product,
@@ -102,14 +89,13 @@ const createCardOrder = async (session) => {
     // 4) Clear cart depend on cartId
     await Cart.findByIdAndDelete(cartId);
   }
-  
 };
 
 // @desc    This webhook will run when stripe payment success paid
 // @route   POST /webhook-checkout
 // @access  Protected/User
 exports.webhookCheckout = asyncHandler(async (req, res, next) => {
-  const sig = req.headers['stripe-signature'];
+  const sig = req.headers["stripe-signature"];
 
   let event;
 
@@ -122,8 +108,8 @@ exports.webhookCheckout = asyncHandler(async (req, res, next) => {
   } catch (err) {
     return res.status(400).send(`Webhook Error: ${err.message}`);
   }
-  
-  if (event.type === 'checkout.session.completed') {
+
+  if (event.type === "checkout.session.completed") {
     //  Create order
     createCardOrder(event.data.object);
   }

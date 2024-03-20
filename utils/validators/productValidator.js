@@ -22,17 +22,17 @@ exports.createProductValidator= [
       check('image')
       .notEmpty()
       .withMessage('الصورة مطلوبة'),
-      check('InitialPrice')
+      check('initialPrice')
       .notEmpty()
       .withMessage('السعر المبدئي مطلوب')
     .isNumeric()
     .withMessage('يجب ان تدخل رقما للسعر المبدئي'),
-      check('LowestBidValue')
+      check('lowestBidValue')
       .notEmpty()
       .withMessage('أقل قيمة للمزايدة مطلوبة')
     .isNumeric()
     .withMessage('يجب ان تدخل رقما '),
-    check('BiddingStartTime')
+    check('biddingStartDate')
     .notEmpty()
     .withMessage('تاريخ البدء مطلوب')
     .custom((val)=>{
@@ -43,7 +43,6 @@ exports.createProductValidator= [
       }
       return true;
     }),
-    check('Merchant').isMongoId().withMessage('Invalid ID formate for Merchant'),
     validatorMiddleware,
 ];
 

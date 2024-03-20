@@ -1,59 +1,54 @@
-const asyncHandler = require('express-async-handler');
-const ApiError = require('../utils/apiError');
-const ApiFeatures = require('../utils/apiFeatures');
+const asyncHandler = require("express-async-handler");
+const ApiError = require("../utils/apiError");
+const ApiFeatures = require("../utils/apiFeatures");
 
-
-
-const StatusMode= async(Model)=>{
+const StatusMode = async (Model) => {
   const currentUTC = new Date();
   // Add 3 hours to the current UTC time
-  const utcPlus3Hours = new Date(currentUTC.getTime() + 1 * 60 * 60 * 1000)
-
-
+  const utcPlus3Hours = new Date(currentUTC.getTime() + 1 * 60 * 60 * 1000);
 
   const result = await Model.updateMany(
     {
       $and: [
-        { BiddingEndTime: { $gte: utcPlus3Hours } },
-        { BiddingStartTime: { $lte: utcPlus3Hours } }
-      ]
+        { biddingEndDate: { $gte: utcPlus3Hours } },
+        { biddingStartDate: { $lte: utcPlus3Hours } },
+      ],
     },
-    { $set: { status: 'start-now' } }
+    { $set: { status: "start-now" } }
   );
 
   const res = await Model.updateMany(
     {
       $and: [
-        { BiddingEndTime: { $lte: utcPlus3Hours } },
-        { BiddingStartTime: { $lte: utcPlus3Hours } }
-      ]
+        { biddingEndDate: { $lte: utcPlus3Hours } },
+        { biddingStartDate: { $lte: utcPlus3Hours } },
+      ],
     },
-    { $set: { status: 'finished' } }
+    { $set: { status: "finished" } }
   );
 
   const Res = await Model.updateMany(
     {
       $and: [
-        { BiddingEndTime: { $gte: utcPlus3Hours } },
-        { BiddingStartTime: { $gte: utcPlus3Hours } }
-      ]
+        { biddingEndDate: { $gte: utcPlus3Hours } },
+        { biddingStartDate: { $gte: utcPlus3Hours } },
+      ],
     },
-    { $set: { status: 'not-started' } }
+    { $set: { status: "not-started" } }
   );
-}
+};
 
-exports.getAll = (Model,modelName,special) =>
+exports.getAll = (Model, modelName, special) =>
   asyncHandler(async (req, res, next) => {
     let filter = {};
-    if (special === "special") {   
-      filter = {Merchant:req.user._id}
-    }else if (req.filterObj) {
+    if (special === "special") {
+      filter = { Merchant: req.user._id };
+    } else if (req.filterObj) {
       filter = req.filterObj;
     }
-  
 
-    if(modelName==="product"){
-      StatusMode(Model)
+    if (modelName === "product") {
+      StatusMode(Model);
     }
 
     const apiFeatures = new ApiFeatures(Model.find(filter), req.query)
@@ -95,65 +90,65 @@ exports.getAll = (Model,modelName,special) =>
     });
   });
 
+exports.createOne = (Model, modelName) =>
+  asyncHandler(async (req, res, next) => {
+    if (modelName === "product") {
+      const biddingEndDate = new Date(
+        new Date(req.body.biddingStartDate).setDate(
+          new Date(req.body.biddingStartDate).getDate() + 1
+        )
+      ).toISOString().split('T')[0];
 
-exports.createOne=(Model,modelName) =>
-asyncHandler(async(req,res,next)=>{
-  if(modelName==="product"){
+      const data = await Model.create({
+        ...req.body,
+        biddingEndDate,
+      });
+      res.status(201).json({ data: data });
+    } else {
+      const data = await Model.create(req.body);
+      res.status(201).json({ data: data });
+    }
+  });
 
-    const BiddingEndTime=
-     new Date(new Date(req.body.BiddingStartTime).setDate(new Date(req.body.BiddingStartTime).getDate()+1)).toLocaleDateString();
-    
-    const data = await Model.create({
-      name:req.body.name,
-      slug:req.body.slug,
-      image:req.body.image,
-      description:req.body.description,
-      InitialPrice:req.body.InitialPrice,
-      LowestBidValue:req.body.LowestBidValue,
-      BiddingStartTime:req.body.BiddingStartTime,
-      Merchant:req.body.Merchant,
-      BiddingEndTime,
-    });
-    res.status(201).json({ data: data });
-  }else{
-    const data = await Model.create(req.body);
-    res.status(201).json({ data: data });
-  }
-    
-})
-
-exports.getOne=(Model,modelName) =>
-asyncHandler(async(req,res,next)=>{
-  if(modelName==="product"){
-    StatusMode(Model)
-  }
+exports.getOne = (Model, modelName) =>
+  asyncHandler(async (req, res, next) => {
+    if (modelName === "product") {
+      StatusMode(Model);
+    }
     const { id } = req.params;
     const data = await Model.findById(id);
-    if(!data){
-      return next(new  ApiError(`No document for this id ${id}`,404))
+    if (!data) {
+      return next(new ApiError(`No document for this id ${id}`, 404));
     }
     res.status(200).json({ data: data });
-})
+  });
 
-exports.updateOne=(Model,modelName) =>
-asyncHandler(async(req,res,next)=>{
+exports.updateOne = (Model, modelName) =>
+  asyncHandler(async (req, res, next) => {
     const { id } = req.params;
-    if (req.body.BiddingStartTime){
-      const BiddingEndTime=
-      new Date(new Date(req.body.BiddingStartTime).setDate(new Date(req.body.BiddingStartTime).getDate()+1)).toLocaleDateString();
-      const expired = await Model.findByIdAndUpdate(req.params.id, {BiddingEndTime:BiddingEndTime}, {
-        new: true,
-      });
+    if (req.body.biddingStartDate) {
+      const biddingEndDate = new Date(
+        new Date(req.body.biddingStartDate).setDate(
+          new Date(req.body.biddingStartDate).getDate() + 1
+        )
+      ).toLocaleDateString();
+      const expired = await Model.findByIdAndUpdate(
+        req.params.id,
+        { biddingEndDate: biddingEndDate },
+        {
+          new: true,
+        }
+      );
     }
     const data = await Model.findByIdAndUpdate(req.params.id, req.body, {
-        new: true,
-      });
-    if(!data){
-      return next(new  ApiError(`No document for this id ${id}`,404))
+      new: true,
+    });
+    if (!data) {
+      return next(new ApiError(`No document for this id ${id}`, 404));
     }
 
     res.status(200).json({ data: data });
-})
+  });
 
 exports.deleteOne = (Model) =>
   asyncHandler(async (req, res, next) => {
@@ -163,7 +158,6 @@ exports.deleteOne = (Model) =>
     if (!data) {
       return next(new ApiError(`No document for this id ${id}`, 404));
     }
-
 
     res.status(204).send();
   });
