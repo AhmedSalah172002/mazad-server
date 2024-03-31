@@ -59,4 +59,7 @@ router
     deleteProduct
   );
 
-module.exports = router;
+module.exports = {
+  router,
+  setUserInBody,
+};
