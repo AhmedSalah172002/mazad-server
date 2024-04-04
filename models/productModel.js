@@ -6,7 +6,6 @@ const productSchema = new mongoose.Schema(
     name: {
       type: String,
       required: [true, "Product required"],
-      unique: [true, "Product must be unique"],
       minlength: [3, "Too short Product name"],
       maxlength: [32, "Too long Product name"],
     },
@@ -18,6 +17,17 @@ const productSchema = new mongoose.Schema(
     image: {
       type: String,
       require: [true, "Product image is required"],
+    },
+    images: {
+      type: [
+        {
+          type: String,
+        },
+      ],
+      validate: [
+        (val) => val.length <= 5,
+        "Exceeded maximum number of images allowed (5)",
+      ],
     },
     description: {
       type: String,

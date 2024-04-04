@@ -42,7 +42,7 @@ exports.getAll = (Model, modelName, special) =>
   asyncHandler(async (req, res, next) => {
     let filter = {};
     if (special === "special") {
-      filter = { Merchant: req.user._id };
+      filter = { user: req.user._id };
     } else if (req.filterObj) {
       filter = req.filterObj;
     }
