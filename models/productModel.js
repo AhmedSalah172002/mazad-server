@@ -77,15 +77,15 @@ const setImageURL = (doc, dirName) => {
     doc.image = imageUrl;
   }
 };
-// findOne, findAll and update
-productSchema.post("init", (doc) => {
-  setImageURL(doc, 'products');
-});
+// // findOne, findAll and update
+// productSchema.post("init", (doc) => {
+//   setImageURL(doc, 'products');
+// });
 
-// create
-productSchema.post("save", (doc) => {
-  setImageURL(doc, 'products');
-});
+// // create
+// productSchema.post("save", (doc) => {
+//   setImageURL(doc, 'products');
+// });
 
 productSchema.pre(/^find/, function (next) {
   this.populate({

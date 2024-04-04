@@ -11,6 +11,9 @@ const {
 } = require("../utils/validators/categoryValidator");
 const { uploadImage, resizeImage } = require("../services/productService");
 const { allowedTo, protect } = require("../services/authService");
+const {
+  uploadSingleImageToCloudinary,
+} = require("../utils/uploadImageToCloudinary");
 
 const router = express.Router();
 
@@ -21,6 +24,7 @@ router
     allowedTo("admin"),
     uploadImage,
     resizeImage("categories"),
+    uploadSingleImageToCloudinary("categories"),
     createCategoryValidator,
     createCategory
   )
@@ -34,6 +38,7 @@ router
     allowedTo("admin"),
     uploadImage,
     resizeImage("categories"),
+    uploadSingleImageToCloudinary("categories"),
     updateCategory
   )
   .delete(protect, allowedTo("admin"), deleteCategory);
