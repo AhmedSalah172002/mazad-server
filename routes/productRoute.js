@@ -9,6 +9,7 @@ const {
   resizeImage,
   specialProducts,
 } = require("../services/productService");
+const { uploadSingleImageToCloudinary } = require("../utils/uploadImageToCloudinary");
 const {
   createProductValidator,
   getProductValidator,
@@ -33,6 +34,7 @@ router
     allowedTo("merchant"),
     uploadImage,
     resizeImage("products"),
+    uploadSingleImageToCloudinary("products"),
     setUserInBody,
     createProductValidator,
     createProduct
@@ -47,6 +49,7 @@ router
     allowedTo("merchant"),
     uploadImage,
     resizeImage("products"),
+    uploadSingleImageToCloudinary("products"),
     setUserInBody,
     updateProductValidator,
     updateProduct
