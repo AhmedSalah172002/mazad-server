@@ -1,3 +1,6 @@
+const {
+  uploadMultipleImageMulter,
+} = require("../middlewares/uploadImageMiddleware");
 const { protect, allowedTo } = require("../services/authService");
 const {
   getProducts,
@@ -5,11 +8,12 @@ const {
   getProduct,
   updateProduct,
   deleteProduct,
-  uploadImage,
-  resizeImage,
   specialProducts,
+  getSpecificProductMeddleWare,
 } = require("../services/productService");
-const { uploadSingleImageToCloudinary } = require("../utils/uploadImageToCloudinary");
+const {
+  uploadMultipleImageToCloudinary,
+} = require("../utils/uploadImageToCloudinary");
 const {
   createProductValidator,
   getProductValidator,
@@ -32,9 +36,8 @@ router
   .post(
     protect,
     allowedTo("merchant"),
-    uploadImage,
-    resizeImage("products"),
-    uploadSingleImageToCloudinary("products"),
+    uploadMultipleImageMulter("products"),
+    uploadMultipleImageToCloudinary("products"),
     setUserInBody,
     createProductValidator,
     createProduct
@@ -47,9 +50,9 @@ router
   .put(
     protect,
     allowedTo("merchant"),
-    uploadImage,
-    resizeImage("products"),
-    uploadSingleImageToCloudinary("products"),
+    getSpecificProductMeddleWare,
+    uploadMultipleImageMulter("products"),
+    uploadMultipleImageToCloudinary("products"),
     setUserInBody,
     updateProductValidator,
     updateProduct

@@ -53,3 +53,9 @@ exports.deleteProduct = factory.deleteOne(Product);
 // @route   DELETE /api/v1/products/:id
 // @access  Private
 exports.specialProducts = factory.getAll(Product, "product", "special");
+
+exports.getSpecificProductMeddleWare = asyncHandler(async (req, res, next) => {
+  const product = await Product.findById(req.params.id);
+  req.product = product;
+  next();
+});
