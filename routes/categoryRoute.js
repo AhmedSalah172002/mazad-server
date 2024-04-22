@@ -1,46 +1,46 @@
 const express = require("express");
 const {
-  createCategory,
-  getAllCategories,
-  getOneCategory,
-  updateCategory,
-  deleteCategory,
+   createCategory,
+   getAllCategories,
+   getOneCategory,
+   updateCategory,
+   deleteCategory,
 } = require("../services/categoryService");
 const {
-  createCategoryValidator,
+   createCategoryValidator,
 } = require("../utils/validators/categoryValidator");
 const { uploadImage, resizeImage } = require("../services/productService");
 const { allowedTo, protect } = require("../services/authService");
 const {
-  uploadSingleImageToCloudinary,
+   uploadSingleImageToCloudinary,
 } = require("../utils/uploadImageToCloudinary");
 
 const router = express.Router();
 
 router
-  .route("/category")
-  .post(
-    protect,
-    allowedTo("admin"),
-    uploadImage,
-    resizeImage("categories"),
-    uploadSingleImageToCloudinary("categories"),
-    createCategoryValidator,
-    createCategory
-  )
-  .get(getAllCategories);
+   .route("/category")
+   .post(
+      protect,
+      allowedTo("admin"),
+      uploadImage,
+      resizeImage("categories"),
+      uploadSingleImageToCloudinary("categories"),
+      createCategoryValidator,
+      createCategory
+   )
+   .get(getAllCategories);
 
 router
-  .route("/category/:id")
-  .get(getOneCategory)
-  .put(
-    protect,
-    allowedTo("admin"),
-    uploadImage,
-    resizeImage("categories"),
-    uploadSingleImageToCloudinary("categories"),
-    updateCategory
-  )
-  .delete(protect, allowedTo("admin"), deleteCategory);
+   .route("/category/:id")
+   .get(getOneCategory)
+   .put(
+      protect,
+      allowedTo("admin"),
+      uploadImage,
+      resizeImage("categories"),
+      uploadSingleImageToCloudinary("categories"),
+      updateCategory
+   )
+   .delete(protect, allowedTo("admin"), deleteCategory);
 
 module.exports = router;
