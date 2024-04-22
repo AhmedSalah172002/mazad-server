@@ -40,36 +40,36 @@ app.options("*", cors());
 app.use(compression());
 
 app.post(
-  "/webhook-checkout",
-  express.raw({ type: "application/json" }),
-  webhookCheckout
+   "/webhook-checkout",
+   express.raw({ type: "application/json" }),
+   webhookCheckout
 );
 
 // Middlewares
 app.use(express.json());
 
 if (process.env.NODE_ENV === "development") {
-  app.use(morgan("dev"));
-  console.log(`mode: ${process.env.NODE_ENV}`);
+   app.use(morgan("dev"));
+   console.log(`mode: ${process.env.NODE_ENV}`);
 }
 
 const server = http.createServer(app);
 
 const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL,
-    methods: ["GET", "POST"],
-  },
+   cors: {
+      origin: process.env.FRONTEND_URL,
+      methods: ["GET", "POST"],
+   },
 });
 
 io.on("connection", (socket) => {
-  socket.on("Join_Room", (data) => {
-    socket.join(data);
-  });
+   socket.on("Join_Room", (data) => {
+      socket.join(data);
+   });
 
-  socket.on("Send_Mazad", (data) => {
-    socket.to(data.room).emit("Recieve_Mazad", data.message);
-  });
+   socket.on("Send_Mazad", (data) => {
+      socket.to(data.room).emit("Recieve_Mazad", data.message);
+   });
 });
 
 // Mount Routes
@@ -84,7 +84,7 @@ app.use("/api/v1", categoryRoute);
 app.use("/api/v1", reviewRoute);
 
 app.all("*", (req, res, next) => {
-  next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
+   next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));
 });
 
 // Global error handling middleware for express
@@ -93,14 +93,14 @@ app.use(globalError);
 const PORT = process.env.PORT || 9000;
 
 const server1 = server.listen(PORT, () => {
-  console.log(`App running running on port ${PORT}`);
+   console.log(`App running running on port ${PORT}`);
 });
 
 // Handle rejection outside express
 process.on("unhandledRejection", (err) => {
-  console.error(`UnhandledRejection Errors: ${err.name} | ${err.message}`);
-  server1.close(() => {
-    console.error(`Shutting down....`);
-    process.exit(1);
-  });
+   console.error(`UnhandledRejection Errors: ${err.name} | ${err.message}`);
+   server1.close(() => {
+      console.error(`Shutting down....`);
+      process.exit(1);
+   });
 });
