@@ -1,7 +1,8 @@
+const fs = require('fs');
+const path = require('path');
 const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
-
 const { Product } = require("../models/productModel");
 const factory = require("./handlersFactory");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
@@ -12,8 +13,13 @@ exports.uploadImage = uploadSingleImage("image");
 // Image processing
 exports.resizeImage = (dirName) =>
    asyncHandler(async (req, res, next) => {
-      const filename = `${dirName}-${uuidv4()}-${Date.now()}.jpeg`;
+      const dirPath = path.join(__dirname, `../uploads/${dirName}`);
 
+      if (!fs.existsSync(dirPath)) {
+         fs.mkdirSync(dirPath, { recursive: true });
+      }
+
+      const filename = `${dirName}-${uuidv4()}-${Date.now()}.jpeg`;
       if (req.file) {
          await sharp(req.file.buffer)
             .toFormat("jpeg")
