@@ -1,7 +1,7 @@
 const multer = require("multer");
 const ApiError = require("../utils/apiError");
 const path = require("path");
-
+const fs = require('fs')
 const multerOptions = () => {
    const multerStorage = multer.memoryStorage();
 
@@ -24,6 +24,12 @@ exports.uploadMultipleImageMulter = (dirName) => {
    const upload = multer({
       storage: multer.diskStorage({
          destination: function (req, file, cb) {
+            const dirPath = path.join(__dirname, `../uploads/${dirName}`);
+
+            if (!fs.existsSync(dirPath)) {
+               fs.mkdirSync(dirPath, { recursive: true });
+            }
+
             cb(null, path.join("uploads", dirName));
          },
          filename: function (req, file, cb) {
