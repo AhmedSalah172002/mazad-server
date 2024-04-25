@@ -17,7 +17,7 @@ exports.addAddress = asyncHandler(async (req, res, next) => {
    if (user.addresses.length > 0 && user.image) {
       user.active = true;
    } else {
-      updatedUser.active = false;
+      user.active = false;
    }
    user.save();
 
