@@ -1,13 +1,20 @@
 const { check } = require("express-validator");
 const validatorMiddleware = require("../../middlewares/validatorMiddleware");
+const ApiError = require("../apiError");
 
 exports.createAddressValidator = [
    check("alias").notEmpty().withMessage("العنوان الرئيسي مطلوب"),
    check("details").notEmpty().withMessage("تفاصيل العنوان مطلوبة"),
-   check("phone")
-      .isMobilePhone(["ar-EG"])
-      .withMessage("رقم هاتف غير صالح (يجب ان يكون الرقم مصري)"),
-   check("city").notEmpty().withMessage("المدينة مطلوبة"),
+   check("city")
+      .notEmpty()
+      .withMessage("المدينة مطلوبة")
+      .custom((value, { req }) => {
+         if (!req.user.phone){
+            throw ApiError("Phone is required", 400)
+         }
+         req.body.phone = req.user.phone;
+         return true
+      }),
    validatorMiddleware,
 ];
 

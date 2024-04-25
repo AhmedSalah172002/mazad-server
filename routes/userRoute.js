@@ -22,6 +22,10 @@ const {
    deleteLoggedUserData,
 } = require("../services/userService");
 const { protect, allowedTo } = require("../services/authService");
+const {
+   uploadSingleImageToCloudinary,
+} = require("../utils/uploadImageToCloudinary");
+const { resizeImage, uploadImage } = require("../services/productService");
 
 const router = express.Router();
 
@@ -33,7 +37,14 @@ router.put(
    changeMyPasswordValidator,
    updateLoggedUserPassword
 );
-router.put("/updateMe", updateLoggedUserValidator, updateLoggedUserData);
+router.put(
+   "/updateMe",
+   uploadImage('image'),
+   resizeImage("users"),
+   uploadSingleImageToCloudinary("users"),
+   updateLoggedUserValidator,
+   updateLoggedUserData
+);
 router.delete("/deleteMe", deleteLoggedUserData);
 
 // Admin

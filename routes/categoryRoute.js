@@ -22,7 +22,7 @@ router
    .post(
       protect,
       allowedTo("admin"),
-      uploadImage,
+      uploadImage('image'),
       resizeImage("categories"),
       uploadSingleImageToCloudinary("categories"),
       createCategoryValidator,
@@ -36,7 +36,7 @@ router
    .put(
       protect,
       allowedTo("admin"),
-      uploadImage,
+      uploadImage('image'),
       resizeImage("categories"),
       uploadSingleImageToCloudinary("categories"),
       updateCategory

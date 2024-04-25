@@ -8,7 +8,7 @@ const factory = require("./handlersFactory");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 
 // Upload single image
-exports.uploadImage = uploadSingleImage("image");
+exports.uploadImage = (imageField) => uploadSingleImage(imageField);
 
 // Image processing
 exports.resizeImage = (dirName) =>

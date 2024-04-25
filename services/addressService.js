@@ -14,6 +14,13 @@ exports.addAddress = asyncHandler(async (req, res, next) => {
       { new: true }
    );
 
+   if (user.addresses.length > 0 && user.image) {
+      user.active = true;
+   } else {
+      updatedUser.active = false;
+   }
+   user.save();
+
    res.status(200).json({
       status: "success",
       message: "Address added successfully.",

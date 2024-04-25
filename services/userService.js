@@ -5,6 +5,7 @@ const factory = require("./handlersFactory");
 const ApiError = require("../utils/apiError");
 const createToken = require("../utils/createToken");
 const User = require("../models/userModel");
+const { updateAddress } = require("./addressService");
 
 // @desc    Get list of users
 // @route   GET /api/v1/users
@@ -106,17 +107,28 @@ exports.updateLoggedUserPassword = asyncHandler(async (req, res, next) => {
 // @route   PUT /api/v1/users/updateMe
 // @access  Private/Protect
 exports.updateLoggedUserData = asyncHandler(async (req, res, next) => {
-   const updatedUser = await User.findByIdAndUpdate(
-      req.user._id,
-      {
-         name: req.body.name,
-         email: req.body.email,
-         phone: req.body.phone,
-      },
-      { new: true }
-   );
+   const updatedData = {
+      ...req.body,
+   };
+   // execute password, role and active
+   const executedField = ["password", "role", "active"];
+   for (const key in updatedData) {
+      if (executedField.includes(key)) {
+         delete updatedData[key];
+      }
+   }
+   const updatedUser = await User.findByIdAndUpdate(req.user._id, updatedData, {
+      new: true,
+   });
 
-   res.status(200).json({ data: updatedUser });
+   if (updatedUser.addresses.length > 0 && updatedUser.image) {
+      updatedUser.active = true;
+   } else {
+      updatedUser.active = false;
+   }
+   updatedUser.save();
+
+   res.status(200).json(updatedUser);
 });
 
 // @desc    Deactivate logged user

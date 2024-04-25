@@ -30,7 +30,7 @@ const userSchema = new mongoose.Schema(
       passwordResetVerified: Boolean,
       active: {
          type: Boolean,
-         default: true,
+         default: false,
       },
       wishlist: [
          {
@@ -52,6 +52,9 @@ const userSchema = new mongoose.Schema(
             city: String,
          },
       ],
+      image: {
+         type: String,
+      },
    },
    { timestamps: true }
 );
