@@ -43,7 +43,7 @@ exports.getAll = (Model, modelName, special) =>
       const paginationResult = pagination;
 
       res.status(200).json({
-         results: paginatedDocuments.length,
+         results: documents.length,
          paginationResult,
          data: paginatedDocuments,
       });
