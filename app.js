@@ -24,6 +24,8 @@ const cartRoute = require("./routes/cartRoute");
 const orderRoute = require("./routes/orderRoute");
 const categoryRoute = require("./routes/categoryRoute");
 const reviewRoute = require("./routes/reviewRoute");
+const onBoardinRoute = require("./routes/onBoardingRoute");
+
 
 const { webhookCheckout } = require("./services/orderService");
 
@@ -82,6 +84,7 @@ app.use("/api/v1/cart", cartRoute);
 app.use("/api/v1/orders", orderRoute);
 app.use("/api/v1", categoryRoute);
 app.use("/api/v1", reviewRoute);
+app.use("/api/v1", onBoardinRoute);
 
 app.all("*", (req, res, next) => {
    next(new ApiError(`Can't find this route: ${req.originalUrl}`, 400));

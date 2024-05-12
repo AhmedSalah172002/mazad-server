@@ -55,6 +55,17 @@ const userSchema = new mongoose.Schema(
       image: {
          type: String,
       },
+      stripe_account_id: String,
+      stripe_default_currency: String,
+      stripe_account_type: String,
+      stripe_charges_enabled:{
+         type: Boolean,
+         default: false,
+      }, 
+      stripe_payouts_enabled:{
+         type: Boolean,
+         default: false,
+      }, 
    },
    { timestamps: true }
 );
