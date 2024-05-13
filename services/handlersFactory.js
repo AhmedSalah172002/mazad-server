@@ -1,6 +1,8 @@
 const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
+const FB = require("fb");
+FB.setAccessToken(process.env.FACEBOOK_ACCESS_TOKEN);
 
 exports.getAll = (Model, modelName, special) =>
    asyncHandler(async (req, res, next) => {
@@ -53,6 +55,17 @@ exports.createOne = (Model, modelName) =>
    asyncHandler(async (req, res, next) => {
       if (modelName === "product") {
          const data = await Model.create(req.body);
+         FB.api(
+            "me/photos",
+            "post",
+            {
+               url: req.body.image,
+               caption: `لقد تم اضافة منتج جديد علي موقعنا واليك التفاصيل : \n\nاسم المنتج : ${req.body.name}.\n\nالوصف : ${req.body.description}.\n\nتاريخ بدء المزايدة : ${req.body.date}.\n\nمن : ${req.body.startTime}.\nالى: ${req.body.endTime}.\n\nالسعر المبدأي للمزاد : ${req.body.initialPrice} جنية.\n\nأقل سعر للمزايدة ${req.body.lowestBidValue} جنية.\n\nاغتنم الفرصة وسارع في التسجيل ليصلك اشعارنا حتي لا تفوتك الفرصة.`,
+            },
+            function (response) {
+               console.log(response);
+            }
+         );
          res.status(201).json({ data: data });
       } else {
          const data = await Model.create(req.body);
