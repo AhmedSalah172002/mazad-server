@@ -1,11 +1,12 @@
-const fs = require('fs');
-const path = require('path');
+const fs = require("fs");
+const path = require("path");
 const sharp = require("sharp");
 const { v4: uuidv4 } = require("uuid");
 const asyncHandler = require("express-async-handler");
 const { Product } = require("../models/productModel");
 const factory = require("./handlersFactory");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
+const moment = require("moment");
 
 // Upload single image
 exports.uploadImage = (imageField) => uploadSingleImage(imageField);
@@ -180,6 +181,40 @@ exports.updateProductStatus = async (req, res, next) => {
 
       await product.save();
       next();
+   } catch (error) {
+      // Handle any errors
+      return res.status(500).json({ error: "Internal server error" });
+   }
+};
+
+exports.terminateProductStatus = async (req, res, next) => {
+   try {
+      // Update product status based on criteria
+      const product = await Product.findById(req.params.id);
+      if (!product) {
+         return res.status(404).json({ error: "Product not found" });
+      }
+
+      if (product.status === "start-now") {
+         const currentTime = new Date();
+         // Add 1 minute to the current time
+         currentTime.setMinutes(currentTime.getMinutes() + 1);
+         // Format as ISO string and extract time part (HH:mm:ss)
+         const isoTimeString = currentTime
+            .toISOString()
+            .split("T")[1]
+            .substring(0, 8);
+         // Use moment.js to parse and format the time
+         const formattedTime = moment
+            .utc(isoTimeString, "HH:mm:ss")
+            .local()
+            .format("HH:mm");
+         product.endTime = formattedTime
+      }
+
+      await product.save();
+      next();
+      res.status(200).json({ status: "success" });
    } catch (error) {
       // Handle any errors
       return res.status(500).json({ error: "Internal server error" });
