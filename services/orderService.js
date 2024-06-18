@@ -5,6 +5,7 @@ const ApiError = require("../utils/apiError");
 const User = require("../models/userModel");
 const Cart = require("../models/cartModel");
 const Order = require("../models/orderModel");
+const { Product } = require("../models/productModel");
 
 exports.filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
    if (req.user.role === "user") {
@@ -67,9 +68,22 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
    res.status(200).json({ status: "success", session });
 });
 
+const involveClientToMazad = async(data)=>{
+   const product = await Product.findByIdAndUpdate(
+      data.product,
+      {
+         $addToSet: { involved: { user: data.user } },
+      },
+      { new: true }
+   );
+
+}
+
+
 const createCardOrder = async (session) => {
-   const cartId = session.client_reference_id;
    const shippingAddress = session.metadata;
+
+   const cartId = session.client_reference_id;
    const orderPrice = session.amount_total / 100;
 
    const cart = await Cart.findById(cartId);
@@ -108,11 +122,60 @@ exports.webhookCheckout = asyncHandler(async (req, res, next) => {
    } catch (err) {
       return res.status(400).send(`Webhook Error: ${err.message}`);
    }
-
    if (event.type === "checkout.session.completed") {
-      //  Create order
-      createCardOrder(event.data.object);
+      if (event.data.object.metadata.hasOwnProperty("type")) {
+         //  Create order
+         involveClientToMazad(event.data.object.metadata);
+      } else {
+         //  Create order
+         createCardOrder(event.data.object);
+      }
    }
 
    res.status(200).json({ received: true });
+});
+
+exports.InsurancePayment = asyncHandler(async (req, res, next) => {
+   const product = await Product.findById(req.params.productId);
+   if (!product) {
+      return next(
+         new ApiError(
+            `There is no such product with id ${req.params.productId}`,
+            404
+         )
+      );
+   }
+
+   const totalOrderPrice = product.initialPrice * 0.05;
+
+   // 3) Create stripe checkout session
+   const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+         {
+            price_data: {
+               currency: "egp",
+               unit_amount: totalOrderPrice * 100,
+               product_data: {
+                  name: product.name,
+                  description: product.description,
+               },
+            },
+            quantity: 1,
+         },
+      ],
+      mode: "payment",
+      success_url: `${process.env.FRONTEND_URL}/user/mazad/${req.params.productId}`,
+      cancel_url: `${process.env.FRONTEND_URL}/product/${req.params.productId}`,
+      customer_email: req.user.email,
+      client_reference_id: req.params.productId,
+      metadata: {
+         type: "InsurancePayment",
+         user: req.user.id,
+         product: req.params.productId,
+      },
+   });
+
+   // 4) send session to response
+   res.status(200).json({ status: "success", session });
 });

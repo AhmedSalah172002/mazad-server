@@ -14,7 +14,7 @@ exports.addProductToCart = asyncHandler(async (req, res, next) => {
    const product = await Product.findById(productId);
    const user = await User.findById(userId);
    let cart;
-   if (product.mazad.length >= 1) {
+   if (product.mazad.length >= 1) { // [userId,price]
       cart = await Cart.create({
          user: userId,
          totalPrice: product.mazad[product.mazad.length - 1].price,
