@@ -13,29 +13,30 @@ exports.addProductToCart = asyncHandler(async (req, res, next) => {
    const { productId, userId } = req.body;
    const product = await Product.findById(productId);
    const user = await User.findById(userId);
-   let cart;
-   if (product.mazad.length >= 1) { // [userId,price]
-      cart = await Cart.create({
-         user: userId,
-         totalPrice: product.mazad[product.mazad.length - 1].price,
-         product: productId,
-      });
-
-      const message = `Hi ${user.name},\n We received a request to reset the password on your
-      ${process.env.COMPANY_NAME} Account. \n `;
-      try {
-         await sendEmail({
-            email: user.email,
-            subject: "Your password reset code (valid for 10 minutes)",
-            message,
-            resetCode: 'resetCode',
+   let foundedCart = await Cart.findOne({ product: product._id, user: user._id });
+   if (!foundedCart){
+      if (product.mazad.length >= 1) { // [userId,price]
+         let cart = await Cart.create({
+            user: userId,
+            totalPrice: product.mazad[product.mazad.length - 1].price,
+            product: productId,
          });
-      } catch (err) {
-         console.log(err);
-         return next(new ApiError("There is an error in sending email", 500));
+   
+         const message = `Hi ${user.name},\n We received a request to reset the password on your
+         ${process.env.COMPANY_NAME} Account. \n `;
+         try {
+            await sendEmail({
+               email: user.email,
+               subject: "Your password reset code (valid for 10 minutes)",
+               message,
+               resetCode: 'resetCode',
+            });
+         } catch (err) {
+            console.log(err);
+            return next(new ApiError("There is an error in sending email", 500));
+         }
       }
    }
-
    res.status(201).json({
       status: "success",
       message: "Product added to cart successfully",
