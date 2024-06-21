@@ -32,7 +32,6 @@ const productSchema = new mongoose.Schema(
       description: {
          type: String,
          required: [true, "Product description is required"],
-         minlength: [10, "Too short product description"],
       },
       initialPrice: {
          type: Number,
