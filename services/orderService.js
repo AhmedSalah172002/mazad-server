@@ -6,6 +6,7 @@ const User = require("../models/userModel");
 const Cart = require("../models/cartModel");
 const Order = require("../models/orderModel");
 const { Product } = require("../models/productModel");
+const nodemailer = require("nodemailer");
 
 exports.filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
    if (req.user.role === "user") {
@@ -68,16 +69,69 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
    res.status(200).json({ status: "success", session });
 });
 
-const involveClientToMazad = async(data)=>{
-   const product = await Product.findByIdAndUpdate(
-      data.product,
-      {
-         $addToSet: { involved: { user: data.user } },
+const sendEmail = async (options) => {
+   const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // if secure false port = 587, if true port= 465
+      secure: true,
+      auth: {
+         user: process.env.EMAIL_USERNAME,
+         pass: process.env.EMAIL_PASSWORD,
       },
-      { new: true }
-   );
+   });
 
-}
+   const info = await transporter.sendMail({
+      from: `${process.env.COMPANY_NAME}`, // sender address
+      to: options.email, // list of receivers
+      subject: options.subject, // Subject line
+      text: options.message, // plain text body
+      html: options.html, // html body
+   });
+};
+
+const involveClientToMazad = async (data) => {
+   try {
+      const product = await Product.findByIdAndUpdate(
+         data.product,
+         {
+            $addToSet: { involved: { user: data.user } },
+         },
+         { new: true }
+      );
+
+      if (!product) {
+         throw new ApiError("Product not found", 404);
+      }
+
+      const user = await User.findById(data.user)
+
+      if(!user) {
+         throw new ApiError("user not found", 404);
+      }
+
+      const message = `Hi ${user.name},\nYou have been successfully involved in the auction for the product ${product.name}.`;
+
+      const htmlMessage = `
+         <h1>Congratulations, ${user.name}!</h1>
+         <p>You have been successfully involved in the auction for the product <strong>${product.name}</strong>.</p>
+         <p>We hope you have a great experience bidding on this item.</p>
+         <br/>
+         <p>Best regards,</p>
+         <h3>The ${process.env.COMPANY_NAME} Team</h3>
+      `;
+
+      await sendEmail({
+         email: user.email,
+         subject: "You are involved in a new auction",
+         message: message,
+         html: htmlMessage,
+      });
+
+   } catch (err) {
+      console.log(err);
+      throw new ApiError("There is an error involving the client in the auction", 500);
+   }
+};
 
 
 const createCardOrder = async (session) => {
