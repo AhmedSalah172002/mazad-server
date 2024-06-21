@@ -26,7 +26,6 @@ const categoryRoute = require("./routes/categoryRoute");
 const reviewRoute = require("./routes/reviewRoute");
 const onBoardinRoute = require("./routes/onBoardingRoute");
 
-
 const { webhookCheckout } = require("./services/orderService");
 
 // Connect with db

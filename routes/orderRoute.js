@@ -4,6 +4,7 @@ const {
    findSpecificOrder,
    filterOrderForLoggedUser,
    checkoutSession,
+   InsurancePayment,
 } = require("../services/orderService");
 
 const authService = require("../services/authService");
@@ -17,7 +18,11 @@ router.get(
    authService.allowedTo("user"),
    checkoutSession
 );
-
+router.get(
+   "/insurance-payment/:productId",
+   authService.allowedTo("user"),
+   InsurancePayment
+);
 router.get(
    "/",
    authService.allowedTo("user"),

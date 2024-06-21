@@ -5,6 +5,8 @@ const ApiError = require("../utils/apiError");
 const User = require("../models/userModel");
 const Cart = require("../models/cartModel");
 const Order = require("../models/orderModel");
+const { Product } = require("../models/productModel");
+const nodemailer = require("nodemailer");
 
 exports.filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
    if (req.user.role === "user") {
@@ -67,9 +69,75 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
    res.status(200).json({ status: "success", session });
 });
 
+const sendEmail = async (options) => {
+   const transporter = nodemailer.createTransport({
+      host: process.env.EMAIL_HOST,
+      port: process.env.EMAIL_PORT, // if secure false port = 587, if true port= 465
+      secure: true,
+      auth: {
+         user: process.env.EMAIL_USERNAME,
+         pass: process.env.EMAIL_PASSWORD,
+      },
+   });
+
+   const info = await transporter.sendMail({
+      from: `${process.env.COMPANY_NAME}`, // sender address
+      to: options.email, // list of receivers
+      subject: options.subject, // Subject line
+      text: options.message, // plain text body
+      html: options.html, // html body
+   });
+};
+
+const involveClientToMazad = async (data) => {
+   try {
+      const product = await Product.findByIdAndUpdate(
+         data.product,
+         {
+            $addToSet: { involved: { user: data.user } },
+         },
+         { new: true }
+      );
+
+      if (!product) {
+         throw new ApiError("Product not found", 404);
+      }
+
+      const user = await User.findById(data.user)
+
+      if(!user) {
+         throw new ApiError("user not found", 404);
+      }
+
+      const message = `Hi ${user.name},\nYou have been successfully involved in the auction for the product ${product.name}.`;
+
+      const htmlMessage = `
+         <h1>Congratulations, ${user.name}!</h1>
+         <p>You have been successfully involved in the auction for the product <strong>${product.name}</strong>.</p>
+         <p>We hope you have a great experience bidding on this item.</p>
+         <br/>
+         <p>Best regards,</p>
+         <h3>The ${process.env.COMPANY_NAME} Team</h3>
+      `;
+
+      await sendEmail({
+         email: user.email,
+         subject: "You are involved in a new auction",
+         message: message,
+         html: htmlMessage,
+      });
+
+   } catch (err) {
+      console.log(err);
+      throw new ApiError("There is an error involving the client in the auction", 500);
+   }
+};
+
+
 const createCardOrder = async (session) => {
-   const cartId = session.client_reference_id;
    const shippingAddress = session.metadata;
+
+   const cartId = session.client_reference_id;
    const orderPrice = session.amount_total / 100;
 
    const cart = await Cart.findById(cartId);
@@ -108,11 +176,60 @@ exports.webhookCheckout = asyncHandler(async (req, res, next) => {
    } catch (err) {
       return res.status(400).send(`Webhook Error: ${err.message}`);
    }
-
    if (event.type === "checkout.session.completed") {
-      //  Create order
-      createCardOrder(event.data.object);
+      if (event.data.object.metadata.hasOwnProperty("type")) {
+         //  Create order
+         involveClientToMazad(event.data.object.metadata);
+      } else {
+         //  Create order
+         createCardOrder(event.data.object);
+      }
    }
 
    res.status(200).json({ received: true });
+});
+
+exports.InsurancePayment = asyncHandler(async (req, res, next) => {
+   const product = await Product.findById(req.params.productId);
+   if (!product) {
+      return next(
+         new ApiError(
+            `There is no such product with id ${req.params.productId}`,
+            404
+         )
+      );
+   }
+
+   const totalOrderPrice = product.initialPrice * 0.05;
+
+   // 3) Create stripe checkout session
+   const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: [
+         {
+            price_data: {
+               currency: "egp",
+               unit_amount: totalOrderPrice * 100,
+               product_data: {
+                  name: product.name,
+                  description: product.description,
+               },
+            },
+            quantity: 1,
+         },
+      ],
+      mode: "payment",
+      success_url: `${process.env.FRONTEND_URL}/user/mazad/${req.params.productId}`,
+      cancel_url: `${process.env.FRONTEND_URL}/product/${req.params.productId}`,
+      customer_email: req.user.email,
+      client_reference_id: req.params.productId,
+      metadata: {
+         type: "InsurancePayment",
+         user: req.user.id,
+         product: req.params.productId,
+      },
+   });
+
+   // 4) send session to response
+   res.status(200).json({ status: "success", session });
 });

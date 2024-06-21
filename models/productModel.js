@@ -61,6 +61,14 @@ const productSchema = new mongoose.Schema(
             price: Number,
          },
       ],
+      involved: [
+         {
+            user: {
+               type: mongoose.Schema.ObjectId,
+               ref: "User",
+            },
+         },
+      ],
       category: {
          type: mongoose.Schema.Types.ObjectId,
          ref: "Category",

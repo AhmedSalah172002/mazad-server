@@ -12,6 +12,7 @@ const {
    getSpecificProductMeddleWare,
    updateProductStatus,
    updateProductsStatus,
+   terminateProductStatus,
 } = require("../services/productService");
 const {
    uploadMultipleImageToCloudinary,
@@ -32,6 +33,7 @@ const setUserInBody = (req, res, next) => {
    next();
 };
 
+   
 router
    .route("/")
    .get(updateProductsStatus, getProducts)
@@ -68,7 +70,9 @@ router
       deleteProductValidator,
       deleteProduct
    );
-
+   router
+   .route("/terminate/:id")
+   .get(terminateProductStatus);
 module.exports = {
    router,
    setUserInBody,
