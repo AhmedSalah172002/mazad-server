@@ -2,7 +2,6 @@ const asyncHandler = require("express-async-handler");
 const ApiError = require("../utils/apiError");
 const ApiFeatures = require("../utils/apiFeatures");
 const FB = require("fb");
-FB.setAccessToken(process.env.FACEBOOK_ACCESS_TOKEN);
 
 exports.getAll = (Model, modelName, special) =>
    asyncHandler(async (req, res, next) => {
@@ -55,6 +54,7 @@ exports.createOne = (Model, modelName) =>
    asyncHandler(async (req, res, next) => {
       if (modelName === "product") {
          const data = await Model.create(req.body);
+         FB.setAccessToken(process.env.FACEBOOK_ACCESS_TOKEN);
          FB.api(
             "me/photos",
             "post",

@@ -17,15 +17,21 @@ exports.OnboardingAccount = asyncHandler(async (req, res, next) => {
             await user.save();
          }
       }
+      
 
       if (user.stripe_account_id) {
          const onboardingLink = await stripe.accountLinks.create({
             account: user.stripe_account_id,
-            refresh_url: `${process.env.FRONTEND_URL}/dashboard/account`,
-            return_url: `${process.env.FRONTEND_URL}/dashboard/account`,
+            refresh_url: `${process.env.FRONTEND_URL}/dashboard/products`,
+            return_url: `${process.env.FRONTEND_URL}/dashboard/products`,
             type: "account_onboarding",
             collect: "eventually_due",
          });
+
+         const account = await stripe.accounts.retrieve(user.stripe_account_id)
+         user.stripe_charges_enabled = account.charges_enabled;
+         user.stripe_payouts_enabled = account.payouts_enabled;
+         await user.save();
          return res.status(200).json({ url: onboardingLink.url });
       } else {
          return res
