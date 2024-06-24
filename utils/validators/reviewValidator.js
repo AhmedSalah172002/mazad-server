@@ -3,6 +3,24 @@ const validatorMiddleware = require("../../middlewares/validatorMiddleware");
 const { Review } = require("../../models/reviewModel");
 const ApiError = require("../apiError");
 
+const validateField = (fieldName) => {
+   return check(fieldName)
+      .notEmpty()
+      .withMessage(`${fieldName} is required`)
+      .custom((value) => {
+         if (Number.isNaN(+value)) {
+            throw new ApiError(`${fieldName} value must be number`, 400);
+         } else if (+value < 1 || +value > 5) {
+            throw new ApiError(
+               `${fieldName} value must be between 1 to 5`,
+               400
+            );
+         }
+         return true;
+      });
+};
+
+
 exports.createReviewValidator = [
    check("user")
       .notEmpty()
@@ -14,7 +32,10 @@ exports.createReviewValidator = [
       .withMessage("merchant is required")
       .isMongoId()
       .withMessage("Enter a merchant id valid"),
-   check("message").notEmpty().withMessage("message is required"),
+   validateField("speedOfCommunication"),
+   validateField("delivery"),
+   validateField("credibility"),
+   validateField("respect"),
    validatorMiddleware,
 ];
 
@@ -52,14 +73,5 @@ exports.updateDeleteOneReviewValidator = [
          }
          return true;
       }),
-   validatorMiddleware,
-];
-
-exports.voteValidator = [
-   check("id")
-      .notEmpty()
-      .withMessage("reviewId is required")
-      .isMongoId()
-      .withMessage("Enter a valid reviewId"),
    validatorMiddleware,
 ];

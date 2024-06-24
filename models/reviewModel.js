@@ -8,31 +8,29 @@ const ReviewSchema = new mongoose.Schema(
          ref: "User",
          required: true,
       },
-      // trader
       merchant: {
          type: mongoose.Schema.Types.ObjectId,
          ref: "User",
          required: true,
       },
-      message: {
-         type: String,
-         required: true,
+      rating: {
+         type: Number,
       },
-      upVotes: {
-         type: [
-            {
-               type: mongoose.Schema.Types.ObjectId,
-               ref: "User",
-            },
-         ],
+      speedOfCommunication: {
+         // سرعه التواصل
+         type: Number,
       },
-      downVotes: {
-         type: [
-            {
-               type: mongoose.Schema.Types.ObjectId,
-               ref: "User",
-            },
-         ],
+      delivery: {
+         // التوصيل
+         type: Number,
+      },
+      credibility: {
+         // المصداقيه
+         type: Number,
+      },
+      respect: {
+         // الاحترام
+         type: Number,
       },
    },
    {
