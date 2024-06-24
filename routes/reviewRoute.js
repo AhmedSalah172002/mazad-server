@@ -4,7 +4,6 @@ const {
    createMerchantReview,
    getMerchantUserReviews,
    getOneReview,
-   updateOneReview,
    deleteOneReview,
    calculateRating,
 } = require("../services/reviewService");
@@ -47,5 +46,9 @@ router.get(
    getMerchantUserReviews
 );
 
+router
+   .route("/reviews/:id")
+   .get(getOneReviewValidator, getOneReview)
+   .delete(protect, updateDeleteOneReviewValidator, deleteOneReview);
 
 module.exports = router;

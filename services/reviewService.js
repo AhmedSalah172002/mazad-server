@@ -42,6 +42,4 @@ exports.getMerchantUserReviews = factory.getAll(Review, "Review");
 
 exports.getOneReview = factory.getOne(Review, "Review");
 
-exports.updateOneReview = factory.updateOne(Review, "Review");
-
 exports.deleteOneReview = factory.deleteOne(Review, "Review");
