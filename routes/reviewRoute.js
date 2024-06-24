@@ -1,21 +1,17 @@
 const express = require("express");
-const { protect } = require("../services/authService");
+const { protect, allowedTo } = require("../services/authService");
 const {
    createMerchantReview,
    getMerchantUserReviews,
    getOneReview,
-   updateOneReview,
    deleteOneReview,
-   voteUp,
-   voteDown,
-   deleteVote,
+   calculateRating,
 } = require("../services/reviewService");
 const {
    createReviewValidator,
    getMerchantUserReviewsValidator,
    getOneReviewValidator,
    updateDeleteOneReviewValidator,
-   voteValidator,
 } = require("../utils/validators/reviewValidator");
 const { setUserInBody } = require("./productRoute");
 const router = express.Router();
@@ -36,7 +32,7 @@ const filterByUser = (req, res, next) => {
 
 router
    .route("/merchant/:id/reviews")
-   .post(protect, setUserInBody, createReviewValidator, createMerchantReview)
+   .post(protect, setUserInBody, createReviewValidator, calculateRating, createMerchantReview)
    .get(
       getMerchantUserReviewsValidator,
       filterByMerchant,
@@ -53,12 +49,6 @@ router.get(
 router
    .route("/reviews/:id")
    .get(getOneReviewValidator, getOneReview)
-   .put(protect, updateDeleteOneReviewValidator, updateOneReview)
-   .delete(protect, updateDeleteOneReviewValidator, deleteOneReview);
-
-router.put("/reviews/:id/voteUp", protect, voteValidator, voteUp);
-router.put("/reviews/:id/voteDown", protect, voteValidator, voteDown);
-
-router.delete("/reviews/:id/deleteVote", protect, deleteVote);
+   .delete(protect, allowedTo('admin', 'user'), updateDeleteOneReviewValidator, deleteOneReview);
 
 module.exports = router;
