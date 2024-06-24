@@ -64,6 +64,7 @@ exports.updateDeleteOneReviewValidator = [
       .isMongoId()
       .withMessage("Enter a valid id")
       .custom(async (value, { req }) => {
+         if(req.user.role=='admin') return true
          const reviewExist = await Review.findOne({
             _id: value,
             user: req.user._id.toString(),

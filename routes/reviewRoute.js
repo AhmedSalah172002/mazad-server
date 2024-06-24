@@ -1,5 +1,5 @@
 const express = require("express");
-const { protect } = require("../services/authService");
+const { protect, allowedTo } = require("../services/authService");
 const {
    createMerchantReview,
    getMerchantUserReviews,
@@ -49,6 +49,6 @@ router.get(
 router
    .route("/reviews/:id")
    .get(getOneReviewValidator, getOneReview)
-   .delete(protect, updateDeleteOneReviewValidator, deleteOneReview);
+   .delete(protect, allowedTo('admin', 'user'), updateDeleteOneReviewValidator, deleteOneReview);
 
 module.exports = router;
