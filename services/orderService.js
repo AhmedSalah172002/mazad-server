@@ -43,6 +43,16 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
 
    const totalOrderPrice = cart.totalPrice + taxPrice + shippingPrice;
 
+   const user = await User.findById(cart.product.user._id);
+   if (
+      !user ||
+      !user.stripe_account_id ||
+      !user.stripe_charges_enabled ||
+      !user.stripe_payouts_enabled
+   ) {
+      throw new ApiError("merchant not verified", 404);
+   }
+
    // 3) Create stripe checkout session
    const session = await stripe.checkout.sessions.create({
       line_items: [
@@ -57,8 +67,14 @@ exports.checkoutSession = asyncHandler(async (req, res, next) => {
             quantity: 1,
          },
       ],
+      payment_intent_data: {
+         transfer_data: {
+            destination: user.stripe_account_id,
+         },
+         metadata: req.body.shippingAddress,
+      },
       mode: "payment",
-      success_url: `${process.env.FRONTEND_URL}/my-orders`,
+      success_url: `${process.env.FRONTEND_URL}/dashboard/user/orders`,
       cancel_url: `${process.env.FRONTEND_URL}`,
       customer_email: req.user.email,
       client_reference_id: req.params.cartId,
@@ -103,9 +119,9 @@ const involveClientToMazad = async (data) => {
          throw new ApiError("Product not found", 404);
       }
 
-      const user = await User.findById(data.user)
+      const user = await User.findById(data.user);
 
-      if(!user) {
+      if (!user) {
          throw new ApiError("user not found", 404);
       }
 
@@ -126,13 +142,14 @@ const involveClientToMazad = async (data) => {
          message: message,
          html: htmlMessage,
       });
-
    } catch (err) {
       console.log(err);
-      throw new ApiError("There is an error involving the client in the auction", 500);
+      throw new ApiError(
+         "There is an error involving the client in the auction",
+         500
+      );
    }
 };
-
 
 const createCardOrder = async (session) => {
    const shippingAddress = session.metadata;
@@ -201,6 +218,15 @@ exports.InsurancePayment = asyncHandler(async (req, res, next) => {
    }
 
    const totalOrderPrice = product.initialPrice * 0.05;
+   const user = await User.findById(product.user._id);
+   if (
+      !user ||
+      !user.stripe_account_id ||
+      !user.stripe_charges_enabled ||
+      !user.stripe_payouts_enabled
+   ) {
+      throw new ApiError("merchant not verified", 404);
+   }
 
    // 3) Create stripe checkout session
    const session = await stripe.checkout.sessions.create({
@@ -218,6 +244,16 @@ exports.InsurancePayment = asyncHandler(async (req, res, next) => {
             quantity: 1,
          },
       ],
+      payment_intent_data: {
+         transfer_data: {
+            destination: user.stripe_account_id,
+         },
+         metadata: {
+            type: "InsurancePayment",
+            user: req.user.id,
+            product: req.params.productId,
+         },
+      },
       mode: "payment",
       success_url: `${process.env.FRONTEND_URL}/user/mazad/${req.params.productId}`,
       cancel_url: `${process.env.FRONTEND_URL}/product/${req.params.productId}`,
