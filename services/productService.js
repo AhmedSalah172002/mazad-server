@@ -7,6 +7,8 @@ const { Product } = require("../models/productModel");
 const factory = require("./handlersFactory");
 const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const moment = require("moment");
+const { Review } = require("../models/reviewModel");
+const { getMerchantAverageReviews } = require("./reviewService");
 
 // Upload single image
 exports.uploadImage = (imageField) => uploadSingleImage(imageField);
@@ -40,7 +42,20 @@ exports.getProducts = factory.getAll(Product, "product");
 // @desc    Get specific product by id
 // @route   GET /api/v1/products/:id
 // @access  Public
-exports.getProduct = factory.getOne(Product, "product");
+exports.getProduct = asyncHandler(async (req, res, next) => {
+   const { id } = req.params;
+   let data = await Product.findById(id);
+   if (!data) {
+      return next(new ApiError(`No document for this id ${id}`, 404));
+   }
+   data = data.toObject();
+
+   const reviews = await Review.find({ merchant: data.user._id });
+   const merchantReview = getMerchantAverageReviews(reviews);
+   data.user.reviews = merchantReview;
+
+   res.status(200).json({ data: data });
+});
 
 // @desc    Create product
 // @route   POST  /api/v1/products
@@ -209,7 +224,7 @@ exports.terminateProductStatus = async (req, res, next) => {
             .utc(isoTimeString, "HH:mm:ss")
             .local()
             .format("HH:mm");
-         product.endTime = formattedTime
+         product.endTime = formattedTime;
       }
 
       await product.save();

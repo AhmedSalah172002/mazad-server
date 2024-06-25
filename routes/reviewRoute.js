@@ -6,6 +6,7 @@ const {
    getOneReview,
    deleteOneReview,
    calculateRating,
+   deleteUserReview,
 } = require("../services/reviewService");
 const {
    createReviewValidator,
@@ -38,6 +39,8 @@ router
       filterByMerchant,
       getMerchantUserReviews
    );
+
+router.delete("/merchant/:id/user/review", protect, setUserInBody, deleteUserReview)
 
 router.get(
    "/user/:id/reviews",

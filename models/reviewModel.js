@@ -25,7 +25,7 @@ const ReviewSchema = new mongoose.Schema(
          type: Number,
       },
       credibility: {
-         // المصداقيه
+         // المصداقية
          type: Number,
       },
       respect: {
