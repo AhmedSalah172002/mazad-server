@@ -95,7 +95,7 @@ const productSchema = new mongoose.Schema(
 productSchema.pre(/^find/, function (next) {
    this.populate({
       path: "user",
-      select: "name email phone role addresses",
+      select: "name email phone role addresses image",
    });
    this.populate({
       path: "category",
