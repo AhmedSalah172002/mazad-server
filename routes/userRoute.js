@@ -20,6 +20,7 @@ const {
    updateLoggedUserPassword,
    updateLoggedUserData,
    deleteLoggedUserData,
+   getAllMerchants,
 } = require("../services/userService");
 const { protect, allowedTo } = require("../services/authService");
 const {
@@ -39,7 +40,7 @@ router.put(
 );
 router.put(
    "/updateMe",
-   uploadImage('image'),
+   uploadImage("image"),
    resizeImage("users"),
    uploadSingleImageToCloudinary("users"),
    updateLoggedUserValidator,
@@ -60,5 +61,7 @@ router
    .get(getUserValidator, getUser)
    .put(updateUserValidator, updateUser)
    .delete(deleteUserValidator, deleteUser);
+
+router.get("/admin/merchants", protect, allowedTo("admin"), getAllMerchants);
 
 module.exports = router;

@@ -1,8 +1,9 @@
 const { Review } = require("../models/reviewModel");
 const asyncHandler = require("express-async-handler");
 const factory = require("./handlersFactory");
+const User = require("../models/userModel");
 
-exports.getMerchantAverageReviews = (reviews) => {
+const getMerchantAverageReviews = (reviews) => {
    const average = {
       rating: 0,
       speedOfCommunication: 0,
@@ -37,11 +38,11 @@ exports.getMerchantAverageReviews = (reviews) => {
    average.credibility = average.credibility.toFixed(2);
    average.respect = average.respect.toFixed(2);
    average.rating = average.rating.toFixed(2);
-   
+
    return average;
 };
 
-exports.calculateRating = (req, res, next) => {
+const calculateRating = (req, res, next) => {
    let rating = 0;
    const fields = [
       "speedOfCommunication",
@@ -58,7 +59,7 @@ exports.calculateRating = (req, res, next) => {
    next();
 };
 
-exports.createMerchantReview = asyncHandler(async (req, res, next) => {
+const createMerchantReview = asyncHandler(async (req, res, next) => {
    const existReview = await Review.findOne({
       user: req.user._id.toString(),
       merchant: req.params.id,
@@ -77,13 +78,13 @@ exports.createMerchantReview = asyncHandler(async (req, res, next) => {
    return res.status(201).json(review);
 });
 
-exports.getMerchantUserReviews = factory.getAll(Review, "Review");
+const getMerchantUserReviews = factory.getAll(Review, "Review");
 
-exports.getOneReview = factory.getOne(Review, "Review");
+const getOneReview = factory.getOne(Review, "Review");
 
-exports.deleteOneReview = factory.deleteOne(Review, "Review");
+const deleteOneReview = factory.deleteOne(Review, "Review");
 
-exports.deleteUserReview = asyncHandler(async (req, res, next) => {
+const deleteUserReview = asyncHandler(async (req, res, next) => {
    const { id: merchantId } = req.params;
    const review = await Review.findOneAndDelete({
       user: req.user._id,
@@ -94,3 +95,30 @@ exports.deleteUserReview = asyncHandler(async (req, res, next) => {
    }
    return res.status(204).send();
 });
+
+const getMerchantReviews = asyncHandler(async (req, res, next) => {
+   const { id: merchantId } = req.params;
+   const merchant = await User.findById(merchantId);
+   const reviews = await Review.find({ merchant: merchantId }).populate({
+      path: "user",
+      select: "name email image",
+   });
+   const averageReviews = getMerchantAverageReviews(reviews);
+   const response = {
+      merchant,
+      reviews,
+      averageReviews,
+   };
+   return res.status(200).json(response);
+});
+
+module.exports = {
+   getMerchantAverageReviews,
+   calculateRating,
+   createMerchantReview,
+   getMerchantUserReviews,
+   getOneReview,
+   deleteOneReview,
+   deleteUserReview,
+   getMerchantReviews,
+};

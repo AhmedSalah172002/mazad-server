@@ -138,3 +138,10 @@ exports.deleteLoggedUserData = asyncHandler(async (req, res, next) => {
    await User.findByIdAndDelete(req.user._id);
    res.status(204).json({ status: "Success" });
 });
+
+
+
+exports.getAllMerchants = asyncHandler(async(req, res, next) => {
+   const merchants = await User.find({role: 'merchant'})
+   return res.status(200).json(merchants)
+})
