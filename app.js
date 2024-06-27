@@ -80,7 +80,7 @@ app.use("/api/v1/auth", authRoute);
 app.use("/api/v1/addresses", addressRoute);
 app.use("/api/v1/mazad", mazadRoute);
 app.use("/api/v1/cart", cartRoute);
-app.use("/api/v1/orders", orderRoute);
+app.use("/api/v1", orderRoute);
 app.use("/api/v1", categoryRoute);
 app.use("/api/v1", reviewRoute);
 app.use("/api/v1", onBoardinRoute);
