@@ -7,6 +7,7 @@ const Cart = require("../models/cartModel");
 const Order = require("../models/orderModel");
 const { Product } = require("../models/productModel");
 const nodemailer = require("nodemailer");
+const { default: mongoose } = require("mongoose");
 
 exports.filterOrderForLoggedUser = asyncHandler(async (req, res, next) => {
    if (req.user.role === "user") {
@@ -268,4 +269,13 @@ exports.InsurancePayment = asyncHandler(async (req, res, next) => {
 
    // 4) send session to response
    res.status(200).json({ status: "success", session });
+});
+
+exports.getMerchantOrders = asyncHandler(async (req, res, next) => {
+   const orders = await Order.find();
+   const filteredOrders = orders.filter((order) => {
+      return order.product.user._id.toString() == req.user._id.toString();
+   });
+
+   return res.status(200).json(filteredOrders);
 });
