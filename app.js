@@ -27,6 +27,7 @@ const reviewRoute = require("./routes/reviewRoute");
 const onBoardinRoute = require("./routes/onBoardingRoute");
 
 const { webhookCheckout } = require("./services/orderService");
+const { log } = require("console");
 
 // Connect with db
 dbConnection();
@@ -100,6 +101,7 @@ const server1 = server.listen(PORT, () => {
 
 // Handle rejection outside express
 process.on("unhandledRejection", (err) => {
+   console.log(err);
    console.error(`UnhandledRejection Errors: ${err.name} | ${err.message}`);
    server1.close(() => {
       console.error(`Shutting down....`);

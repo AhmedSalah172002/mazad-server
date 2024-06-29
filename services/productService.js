@@ -9,6 +9,8 @@ const { uploadSingleImage } = require("../middlewares/uploadImageMiddleware");
 const moment = require("moment");
 const { Review } = require("../models/reviewModel");
 const { getMerchantAverageReviews } = require("./reviewService");
+const ApiError = require("../utils/apiError");
+const { log } = require("console");
 
 // Upload single image
 exports.uploadImage = (imageField) => uploadSingleImage(imageField);
@@ -96,56 +98,64 @@ exports.updateProductsStatus = async (req, res, next) => {
          ],
       });
 
-      // Update the status of each product based on its criteria
-      productsToUpdate.forEach(async (product) => {
-         const productDateString = new Date(product.date)
-            .toISOString()
-            .split("T")[0];
-         const startTime = new Date(
-            `${productDateString}T${product.startTime}:00`
-         )
-            .toISOString()
-            .split("T")[1]
-            .substring(0, 5);
-         const endTime = new Date(`${productDateString}T${product.endTime}:00`)
-            .toISOString()
-            .split("T")[1]
-            .substring(0, 5);
-         const currentTime = new Date()
-            .toISOString()
-            .split("T")[1]
-            .substring(0, 5); // Get only HH:mm from ISO string
+      if (productsToUpdate.length) {
+         // Update the status of each product based on its criteria
+         productsToUpdate.forEach(async (product) => {
+            const productDateString = new Date(product.date)
+               .toISOString()
+               .split("T")[0];
 
-         if (
-            productDateString < today || // For old products
-            (productDateString === today && // For products with date equal to today
-               endTime < currentTime)
-         ) {
-            product.status = "finished";
-         }
-         if (
-            productDateString === today &&
-            startTime < currentTime &&
-            endTime > currentTime
-         ) {
-            product.status = "start-now";
-         }
-         if (
-            productDateString > today ||
-            (productDateString === today && // For products with date equal to today
-               startTime > currentTime)
-         ) {
-            product.status = "not-started";
-         }
+            let startTime = new Date(
+               `${productDateString}T${product.startTime}:00`
+            );
+            let endTime = new Date(
+               `${productDateString}T${product.endTime}:00`
+            );
+            if (
+               startTime.toString().toLowerCase().startsWith("invalid") ||
+               endTime.toString().toLowerCase().startsWith("invalid")
+            ) {
+               return;
+            }
 
-         await product.save();
-      });
+            startTime = startTime.toISOString().split("T")[1].substring(0, 5);
+            endTime = endTime.toISOString().split("T")[1].substring(0, 5);
+
+            const currentTime = new Date()
+               .toISOString()
+               .split("T")[1]
+               .substring(0, 5); // Get only HH:mm from ISO string
+
+            if (
+               productDateString < today || // For old products
+               (productDateString === today && // For products with date equal to today
+                  endTime < currentTime)
+            ) {
+               product.status = "finished";
+            }
+            if (
+               productDateString === today &&
+               startTime < currentTime &&
+               endTime > currentTime
+            ) {
+               product.status = "start-now";
+            }
+            if (
+               productDateString > today ||
+               (productDateString === today && // For products with date equal to today
+                  startTime > currentTime)
+            ) {
+               product.status = "not-started";
+            }
+
+            await product.save();
+         });
+      }
 
       // Continue to the next middleware or route handler
       next();
    } catch (error) {
-      // Handle any errors
-      return res.status(500).json({ error: "Internal server error" });
+      next();
    }
 };
 
@@ -161,14 +171,20 @@ exports.updateProductStatus = async (req, res, next) => {
       const productDateString = new Date(product.date)
          .toISOString()
          .split("T")[0];
-      const startTime = new Date(`${productDateString}T${product.startTime}:00`)
-         .toISOString()
-         .split("T")[1]
-         .substring(0, 5);
-      const endTime = new Date(`${productDateString}T${product.endTime}:00`)
-         .toISOString()
-         .split("T")[1]
-         .substring(0, 5);
+
+      let startTime = new Date(`${productDateString}T${product.startTime}:00`);
+      let endTime = new Date(`${productDateString}T${product.endTime}:00`);
+
+      if (
+         startTime.toString().toLowerCase().startsWith("invalid") ||
+         endTime.toString().toLowerCase().startsWith("invalid")
+      ) {
+         return;
+      }
+
+      startTime = startTime.toISOString().split("T")[1].substring(0, 5);
+      endTime = endTime.toISOString().split("T")[1].substring(0, 5);
+
       const currentTime = new Date()
          .toISOString()
          .split("T")[1]
@@ -197,8 +213,7 @@ exports.updateProductStatus = async (req, res, next) => {
       await product.save();
       next();
    } catch (error) {
-      // Handle any errors
-      return res.status(500).json({ error: "Internal server error" });
+      next();
    }
 };
 

@@ -33,10 +33,12 @@ const setUserInBody = (req, res, next) => {
    next();
 };
 
-   
+
 router
    .route("/")
-   .get(updateProductsStatus, getProducts)
+   .get(
+      updateProductsStatus,
+       getProducts)
    .post(
       protect,
       allowedTo("merchant"),
