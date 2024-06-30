@@ -101,7 +101,6 @@ const server1 = server.listen(PORT, () => {
 
 // Handle rejection outside express
 process.on("unhandledRejection", (err) => {
-   console.log(err);
    console.error(`UnhandledRejection Errors: ${err.name} | ${err.message}`);
    server1.close(() => {
       console.error(`Shutting down....`);

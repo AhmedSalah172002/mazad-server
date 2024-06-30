@@ -12,32 +12,35 @@ const authService = require("../services/authService");
 
 const router = express.Router();
 
-router.use(authService.protect);
 
 router.get(
    "/orders/checkout-session/:cartId",
+   authService.protect,
    authService.allowedTo("user"),
    checkoutSession
 );
 router.get(
    "/orders/insurance-payment/:productId",
+   authService.protect,
    authService.allowedTo("user"),
    InsurancePayment
 );
 router.get(
    "/user/orders",
+   authService.protect,
    authService.allowedTo("user"),
    filterOrderForLoggedUser,
    findAllOrders
 );
-router.get("/orders/:id", findSpecificOrder);
+router.get("/orders/:id", authService.protect, findSpecificOrder);
 
 // for admins
-router.get("/admin/orders", authService.allowedTo("admin"), findAllOrders);
+router.get("/admin/orders", authService.protect, authService.allowedTo("admin"), findAllOrders);
 
 // for merchant
 router.get(
    "/merchant/orders",
+   authService.protect,
    authService.allowedTo("merchant"),
    getMerchantOrders
 );

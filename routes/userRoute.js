@@ -30,37 +30,42 @@ const { resizeImage, uploadImage } = require("../services/productService");
 
 const router = express.Router();
 
-router.use(protect);
 
-router.get("/getMe", getLoggedUserData, getUser);
+router.get("/getMe", protect, getLoggedUserData, getUser);
 router.put(
    "/changeMyPassword",
+   protect,
    changeMyPasswordValidator,
    updateLoggedUserPassword
 );
 router.put(
    "/updateMe",
+   protect,
    uploadImage("image"),
    resizeImage("users"),
    uploadSingleImageToCloudinary("users"),
    updateLoggedUserValidator,
    updateLoggedUserData
 );
-router.delete("/deleteMe", deleteLoggedUserData);
+router.delete("/deleteMe", protect, deleteLoggedUserData);
 
 // Admin
-router.use(allowedTo("admin"));
 router.put(
    "/changePassword/:id",
+   protect,
+   allowedTo("admin"),
    changeUserPasswordValidator,
    changeUserPassword
 );
-router.route("/").get(getUsers).post(createUserValidator, createUser);
+router
+   .route("/")
+   .get(protect, allowedTo("admin"), getUsers)
+   .post(protect, allowedTo("admin"), createUserValidator, createUser);
 router
    .route("/:id")
-   .get(getUserValidator, getUser)
-   .put(updateUserValidator, updateUser)
-   .delete(deleteUserValidator, deleteUser);
+   .get(protect, allowedTo("admin"), getUserValidator, getUser)
+   .put(protect, allowedTo("admin"), updateUserValidator, updateUser)
+   .delete(protect, allowedTo("admin"), deleteUserValidator, deleteUser);
 
 router.get("/admin/merchants", protect, allowedTo("admin"), getAllMerchants);
 

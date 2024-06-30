@@ -18,17 +18,39 @@ const {
 
 const router = express.Router();
 
-router.use(authService.protect, authService.allowedTo("user", 'merchant'));
-
 router
    .route("/")
-   .post(createAddressValidator, addAddress)
-   .get(getLoggedUserAddresses);
+   .post(
+      authService.protect,
+      authService.allowedTo("user", "merchant"),
+      createAddressValidator,
+      addAddress
+   )
+   .get(
+      authService.protect,
+      authService.allowedTo("user", "merchant"),
+      getLoggedUserAddresses
+   );
 
 router
    .route("/:addressId")
-   .delete(deleteAddressValidator, removeAddress)
-   .put(updateAddressValidator, updateAddress)
-   .get(getAddressValidator, getSpecificAddress);
+   .delete(
+      authService.protect,
+      authService.allowedTo("user", "merchant"),
+      deleteAddressValidator,
+      removeAddress
+   )
+   .put(
+      authService.protect,
+      authService.allowedTo("user", "merchant"),
+      updateAddressValidator,
+      updateAddress
+   )
+   .get(
+      authService.protect,
+      authService.allowedTo("user", "merchant"),
+      getAddressValidator,
+      getSpecificAddress
+   );
 
 module.exports = router;

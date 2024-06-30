@@ -8,7 +8,9 @@ const authService = require("../services/authService");
 
 const router = express.Router();
 
-router.use(authService.protect, authService.allowedTo("user"));
-router.route("/").post(addProductToCart).get(getLoggedUserCart);
+router
+   .route("/")
+   .post(authService.protect, authService.allowedTo("user"), addProductToCart)
+   .get(authService.protect, authService.allowedTo("user"), getLoggedUserCart);
 
 module.exports = router;
