@@ -107,16 +107,8 @@ exports.updateProductsStatus = async (req, res, next) => {
          const productDateString = new Date(product.date)
             .toISOString()
             .split("T")[0];
-         const startTime = new Date(
-            `${productDateString}T${product.startTime}:00`
-         )
-            .toISOString()
-            .split("T")[1]
-            .substring(0, 5);
-         const endTime = new Date(`${productDateString}T${product.endTime}:00`)
-            .toISOString()
-            .split("T")[1]
-            .substring(0, 5);
+         const startTime = product.startTime;
+         const endTime = product.endTime;
          const currentTime = new Date(
             Date.now() - new Date().getTimezoneOffset() * 60000
          )
@@ -173,14 +165,8 @@ exports.updateProductStatus = async (req, res, next) => {
       const productDateString = new Date(product.date)
          .toISOString()
          .split("T")[0];
-      const startTime = new Date(`${productDateString}T${product.startTime}:00`)
-         .toISOString()
-         .split("T")[1]
-         .substring(0, 5);
-      const endTime = new Date(`${productDateString}T${product.endTime}:00`)
-         .toISOString()
-         .split("T")[1]
-         .substring(0, 5);
+      const startTime = product.startTime;
+      const endTime = product.endTime;
       const currentTime = new Date(
          Date.now() - new Date().getTimezoneOffset() * 60000
       )
