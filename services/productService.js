@@ -104,7 +104,9 @@ exports.updateProductsStatus = async (req, res, next) => {
 
       // Update the status of each product based on its criteria
       productsToUpdate.forEach(async (product) => {
-         const productDateString = product.date.split("T")[0];
+         const productDateString = new Date(product.date)
+            .toISOString()
+            .split("T")[0];
          const startTime = new Date(
             `${productDateString}T${product.startTime}:00`
          )
@@ -168,7 +170,9 @@ exports.updateProductStatus = async (req, res, next) => {
       )
          .toISOString()
          .split("T")[0];
-      const productDateString = product.date.split("T")[0];
+      const productDateString = new Date(product.date)
+         .toISOString()
+         .split("T")[0];
       const startTime = new Date(`${productDateString}T${product.startTime}:00`)
          .toISOString()
          .split("T")[1]
