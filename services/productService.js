@@ -84,62 +84,57 @@ exports.getSpecificProductMeddleWare = asyncHandler(async (req, res, next) => {
    next();
 });
 
+const TimeNow = require("moment-timezone");
+
+const timezone = "Africa/Cairo";
+
+const getCurrentDate = () => TimeNow().tz(timezone).format("YYYY-MM-DD");
+const getCurrentTime = () => TimeNow().tz(timezone).format("HH:mm");
+const getProductDateString = (date) => TimeNow(date).tz(timezone).format("YYYY-MM-DD");
+
+const updateProductStatusBasedOnTime = (product, today, currentTime) => {
+   const productDateString = getProductDateString(product.date);
+   const { startTime, endTime } = product;
+
+   if (
+      productDateString < today || // For old products
+      (productDateString === today && endTime < currentTime) // For products with date equal to today
+   ) {
+      product.status = "finished";
+   } else if (
+      productDateString === today &&
+      startTime < currentTime &&
+      endTime > currentTime
+   ) {
+      product.status = "start-now";
+   } else if (
+      productDateString > today ||
+      (productDateString === today && startTime > currentTime)
+   ) {
+      product.status = "not-started";
+   }
+
+   return product;
+};
+
 exports.updateProductsStatus = async (req, res, next) => {
    try {
-      const today = new Date(
-         Date.now() - new Date().getTimezoneOffset() * 60000
-      )
-         .toISOString()
-         .split("T")[0];
+      const today = getCurrentDate();
+      const currentTime = getCurrentTime();
 
       // Find products that need status update based on criteria
       const productsToUpdate = await Product.find({
          $or: [
             { date: { $lt: today }, status: { $ne: "finished" } }, // Get old products not marked as finished
-            {
-               date: today,
-            },
+            { date: today }
          ],
       });
 
       // Update the status of each product based on its criteria
-      productsToUpdate.forEach(async (product) => {
-         const productDateString = new Date(product.date)
-            .toISOString()
-            .split("T")[0];
-         const startTime = product.startTime;
-         const endTime = product.endTime;
-         const currentTime = new Date(
-            Date.now() - new Date().getTimezoneOffset() * 60000
-         )
-            .toISOString()
-            .split("T")[1]
-            .substring(0, 5); // Get only HH:mm from ISO string
-
-         if (
-            productDateString < today || // For old products
-            (productDateString === today && // For products with date equal to today
-               endTime < currentTime)
-         ) {
-            product.status = "finished";
-         }
-         if (
-            productDateString === today &&
-            startTime < currentTime &&
-            endTime > currentTime
-         ) {
-            product.status = "start-now";
-         }
-         if (
-            productDateString > today ||
-            (productDateString === today && // For products with date equal to today
-               startTime > currentTime)
-         ) {
-            product.status = "not-started";
-         }
-
+      await Promise.all(productsToUpdate.map(async (product) => {
+         product = updateProductStatusBasedOnTime(product, today, currentTime);
          await product.save();
-      });
+      }));
 
       // Continue to the next middleware or route handler
       next();
@@ -157,43 +152,10 @@ exports.updateProductStatus = async (req, res, next) => {
          return res.status(404).json({ error: "Product not found" });
       }
 
-      const currentDate = new Date(
-         Date.now() - new Date().getTimezoneOffset() * 60000
-      )
-         .toISOString()
-         .split("T")[0];
-      const productDateString = new Date(product.date)
-         .toISOString()
-         .split("T")[0];
-      const startTime = product.startTime;
-      const endTime = product.endTime;
-      const currentTime = new Date(
-         Date.now() - new Date().getTimezoneOffset() * 60000
-      )
-         .toISOString()
-         .split("T")[1]
-         .substring(0, 5); // Get only HH:mm from ISO string
+      const today = getCurrentDate();
+      const currentTime = getCurrentTime();
 
-      if (
-         productDateString > currentDate ||
-         (productDateString == currentDate && startTime > currentTime)
-      ) {
-         product.status = "not-started";
-      }
-      if (
-         productDateString == currentDate &&
-         startTime < currentTime &&
-         endTime > currentTime
-      ) {
-         product.status = "start-now";
-      }
-      if (
-         productDateString < currentDate ||
-         (productDateString == currentDate && endTime < currentTime)
-      ) {
-         product.status = "finished";
-      }
-
+      product = updateProductStatusBasedOnTime(product, today, currentTime);
       await product.save();
       next();
    } catch (error) {
@@ -211,19 +173,8 @@ exports.terminateProductStatus = async (req, res, next) => {
       }
 
       if (product.status === "start-now") {
-         const currentTime = new Date();
-         // Add 1 minute to the current time
-         currentTime.setMinutes(currentTime.getMinutes() + 1);
-         // Format as ISO string and extract time part (HH:mm:ss)
-         const isoTimeString = currentTime
-            .toISOString()
-            .split("T")[1]
-            .substring(0, 8);
-         // Use moment.js to parse and format the time
-         const formattedTime = moment
-            .utc(isoTimeString, "HH:mm:ss")
-            .local()
-            .format("HH:mm");
+         const currentTime = TimeNow().tz(timezone).add(1, 'minute'); // Add 1 minute to the current time
+         const formattedTime = currentTime.format("HH:mm");
          product.endTime = formattedTime;
       }
 
