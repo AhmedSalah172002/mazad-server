@@ -86,7 +86,7 @@ exports.getSpecificProductMeddleWare = asyncHandler(async (req, res, next) => {
 
 const TimeNow = require("moment-timezone");
 
-const timezone = "Africa/Cairo";
+const timezone = "Africa/Cairo"; // Cairo, Egypt timezone
 
 const getCurrentDate = () => TimeNow().tz(timezone).format("YYYY-MM-DD");
 const getCurrentTime = () => TimeNow().tz(timezone).format("HH:mm");
@@ -132,14 +132,14 @@ exports.updateProductsStatus = async (req, res, next) => {
 
       // Update the status of each product based on its criteria
       await Promise.all(productsToUpdate.map(async (product) => {
-         product = updateProductStatusBasedOnTime(product, today, currentTime);
+         updateProductStatusBasedOnTime(product, today, currentTime);
          await product.save();
       }));
 
       // Continue to the next middleware or route handler
       next();
    } catch (error) {
-      // Handle any errors
+      console.error("Error in updateProductsStatus:", error);
       return res.status(500).json({ error: "Internal server error" });
    }
 };
@@ -155,11 +155,11 @@ exports.updateProductStatus = async (req, res, next) => {
       const today = getCurrentDate();
       const currentTime = getCurrentTime();
 
-      product = updateProductStatusBasedOnTime(product, today, currentTime);
+      updateProductStatusBasedOnTime(product, today, currentTime);
       await product.save();
       next();
    } catch (error) {
-      // Handle any errors
+      console.error("Error in updateProductStatus:", error);
       return res.status(500).json({ error: "Internal server error" });
    }
 };
@@ -182,7 +182,7 @@ exports.terminateProductStatus = async (req, res, next) => {
       next();
       res.status(200).json({ status: "success" });
    } catch (error) {
-      // Handle any errors
+      console.error("Error in terminateProductStatus:", error);
       return res.status(500).json({ error: "Internal server error" });
    }
 };
