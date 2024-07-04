@@ -86,7 +86,11 @@ exports.getSpecificProductMeddleWare = asyncHandler(async (req, res, next) => {
 
 exports.updateProductsStatus = async (req, res, next) => {
    try {
-      const today = new Date().toISOString().split("T")[0];
+      const today = new Date(
+         Date.now() - new Date().getTimezoneOffset() * 60000
+      )
+         .toISOString()
+         .split("T")[0];
 
       // Find products that need status update based on criteria
       const productsToUpdate = await Product.find({
@@ -98,64 +102,56 @@ exports.updateProductsStatus = async (req, res, next) => {
          ],
       });
 
-      if (productsToUpdate.length) {
-         // Update the status of each product based on its criteria
-         productsToUpdate.forEach(async (product) => {
-            const productDateString = new Date(product.date)
-               .toISOString()
-               .split("T")[0];
+      // Update the status of each product based on its criteria
+      productsToUpdate.forEach(async (product) => {
+         const productDateString = product.date.split("T")[0];
+         const startTime = new Date(
+            `${productDateString}T${product.startTime}:00`
+         )
+            .toISOString()
+            .split("T")[1]
+            .substring(0, 5);
+         const endTime = new Date(`${productDateString}T${product.endTime}:00`)
+            .toISOString()
+            .split("T")[1]
+            .substring(0, 5);
+         const currentTime = new Date(
+            Date.now() - new Date().getTimezoneOffset() * 60000
+         )
+            .toISOString()
+            .split("T")[1]
+            .substring(0, 5); // Get only HH:mm from ISO string
 
-            let startTime = new Date(
-               `${productDateString}T${product.startTime}:00`
-            );
-            let endTime = new Date(
-               `${productDateString}T${product.endTime}:00`
-            );
-            if (
-               startTime.toString().toLowerCase().startsWith("invalid") ||
-               endTime.toString().toLowerCase().startsWith("invalid")
-            ) {
-               return;
-            }
+         if (
+            productDateString < today || // For old products
+            (productDateString === today && // For products with date equal to today
+               endTime < currentTime)
+         ) {
+            product.status = "finished";
+         }
+         if (
+            productDateString === today &&
+            startTime < currentTime &&
+            endTime > currentTime
+         ) {
+            product.status = "start-now";
+         }
+         if (
+            productDateString > today ||
+            (productDateString === today && // For products with date equal to today
+               startTime > currentTime)
+         ) {
+            product.status = "not-started";
+         }
 
-            startTime = startTime.toISOString().split("T")[1].substring(0, 5);
-            endTime = endTime.toISOString().split("T")[1].substring(0, 5);
-
-            const currentTime = new Date()
-               .toISOString()
-               .split("T")[1]
-               .substring(0, 5); // Get only HH:mm from ISO string
-
-            if (
-               productDateString < today || // For old products
-               (productDateString === today && // For products with date equal to today
-                  endTime < currentTime)
-            ) {
-               product.status = "finished";
-            }
-            if (
-               productDateString === today &&
-               startTime < currentTime &&
-               endTime > currentTime
-            ) {
-               product.status = "start-now";
-            }
-            if (
-               productDateString > today ||
-               (productDateString === today && // For products with date equal to today
-                  startTime > currentTime)
-            ) {
-               product.status = "not-started";
-            }
-
-            await product.save();
-         });
-      }
+         await product.save();
+      });
 
       // Continue to the next middleware or route handler
       next();
    } catch (error) {
-      next();
+      // Handle any errors
+      return res.status(500).json({ error: "Internal server error" });
    }
 };
 
@@ -167,25 +163,23 @@ exports.updateProductStatus = async (req, res, next) => {
          return res.status(404).json({ error: "Product not found" });
       }
 
-      const currentDate = new Date().toISOString().split("T")[0];
-      const productDateString = new Date(product.date)
+      const currentDate = new Date(
+         Date.now() - new Date().getTimezoneOffset() * 60000
+      )
          .toISOString()
          .split("T")[0];
-
-      let startTime = new Date(`${productDateString}T${product.startTime}:00`);
-      let endTime = new Date(`${productDateString}T${product.endTime}:00`);
-
-      if (
-         startTime.toString().toLowerCase().startsWith("invalid") ||
-         endTime.toString().toLowerCase().startsWith("invalid")
-      ) {
-         return;
-      }
-
-      startTime = startTime.toISOString().split("T")[1].substring(0, 5);
-      endTime = endTime.toISOString().split("T")[1].substring(0, 5);
-
-      const currentTime = new Date()
+      const productDateString = product.date.split("T")[0];
+      const startTime = new Date(`${productDateString}T${product.startTime}:00`)
+         .toISOString()
+         .split("T")[1]
+         .substring(0, 5);
+      const endTime = new Date(`${productDateString}T${product.endTime}:00`)
+         .toISOString()
+         .split("T")[1]
+         .substring(0, 5);
+      const currentTime = new Date(
+         Date.now() - new Date().getTimezoneOffset() * 60000
+      )
          .toISOString()
          .split("T")[1]
          .substring(0, 5); // Get only HH:mm from ISO string
@@ -213,7 +207,8 @@ exports.updateProductStatus = async (req, res, next) => {
       await product.save();
       next();
    } catch (error) {
-      next();
+      // Handle any errors
+      return res.status(500).json({ error: "Internal server error" });
    }
 };
 
