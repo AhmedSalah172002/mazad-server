@@ -20,6 +20,7 @@ exports.getUser = factory.getOne(User);
 // @desc    Create user
 // @route   POST  /api/v1/users
 // @access  Private/Admin
+
 exports.createUser = factory.createOne(User);
 
 // @desc    Update specific user
